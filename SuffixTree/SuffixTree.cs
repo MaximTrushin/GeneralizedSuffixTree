@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace SuffixTree
 {
@@ -103,8 +104,8 @@ namespace SuffixTree
                     if (WalkDown(next)) continue;
 
                     // observation 2
-                    //if (text[_nodes[next].Start + _activeLength] == c)
-                    if (_activeEdge + _activeLength == c)
+                    if (text[_nodes[next].Start + _activeLength] == c)
+                    //if (_activeEdge + _activeLength == c)
                     {
                         // observation 1
                         _activeLength++;
@@ -143,78 +144,73 @@ namespace SuffixTree
             return new string( text, _nodes[node].Start, Math.Min(_position + 1, _nodes[node].End) - _nodes[node].Start);
         }
 
-        public void PrintTree()
+        public string PrintTree()
         {
-            Console.WriteLine("digraph {");
+            var sb = new StringBuilder();
+            sb.AppendLine("digraph {");
 
-            Console.WriteLine("//------leaves------");
-            PrintLeaves(_root);
-            Console.WriteLine("//------internal _nodes------");
-            printInternalNodes(_root);
-            Console.WriteLine("//------edges------");
-            printEdges(_root);
-            Console.WriteLine("//------suffix links------");
-            printSLinks(_root);
-            Console.WriteLine("}");
+            sb.AppendLine("//------leaves------");
+            PrintLeaves(_root, sb);
+            sb.AppendLine("//------internal _nodes------");
+            printInternalNodes(_root, sb);
+            sb.AppendLine("//------edges------");
+            printEdges(_root, sb);
+            sb.AppendLine("//------suffix links------");
+            printSLinks(_root, sb);
+            sb.AppendLine("}");
+            return sb.ToString();
         }
 
-        private void PrintLeaves(int x)
+        private void PrintLeaves(int x, StringBuilder sb)
         {
             if (_nodes[x].Edges.Count == 0)
             {
-                Console.WriteLine("\tnode" + x + " ");
+                sb.AppendLine("\tnode" + x + " ");
             }
             else
                 foreach (int child in _nodes[x].Edges.Values)
                 {
-                    PrintLeaves(child);
+                    PrintLeaves(child, sb);
                 }
-
         }
 
-        void printInternalNodes(int x)
+        void printInternalNodes(int x, StringBuilder sb)
         {
             if (x != _root
                 && _nodes[x].Edges.Count > 0)
             {
-                Console.WriteLine("\tnode" + x + " ");
+                sb.AppendLine("\tnode" + x + " ");
             }
 
             
             foreach (int child in _nodes[x].Edges.Values)
             {
-                printInternalNodes(child);
+                printInternalNodes(child, sb);
             }
 
         }
 
-        void printEdges(int x)
+        void printEdges(int x, StringBuilder sb)
         {
             foreach (int child in _nodes[x].Edges.Values)
             {
-                Console.WriteLine("\tnode"
+                sb.AppendLine("\tnode"
                         + x + " -> node"
-                        + child + " [label=\"" +EdgeString(child));
-                printEdges(child);
+                        + child + " [label=" +EdgeString(child));
+                printEdges(child, sb);
             }
         }
 
-        void printSLinks(int x)
+        void printSLinks(int x, StringBuilder sb)
         {
             if (_nodes[x].SuffixLink > 0)
             {
-                Console.WriteLine("\tnode"
-                                  + x + " -> node"
-                                  + _nodes[x].SuffixLink);
+                sb.AppendLine("\tnode" + x + " -> node" + _nodes[x].SuffixLink);
             }
-
-
-
             foreach (int child in _nodes[x].Edges.Values)
             {
-                printSLinks(child);
+                printSLinks(child, sb);
             }
-
         }
     }
 }

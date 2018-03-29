@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System;
+using NUnit.Framework;
 
 namespace SuffixTree.Tests
 {
@@ -13,7 +14,54 @@ namespace SuffixTree.Tests
             var s = "abracadabra";
             var tree = new SuffixTree<int>();
             tree.AddWord(s, 1);
-            tree.PrintTree();
+            var stree = tree.PrintTree().Replace("\0", "");
+            Console.WriteLine(stree);
+
+            var expected = @"digraph {
+//------leaves------
+	node5 
+	node10 
+	node1 
+	node7 
+	node15 
+	node12 
+	node2 
+	node14 
+	node3 
+	node6 
+	node8 
+	node16 
+//------internal _nodes------
+	node4 
+	node9 
+	node11 
+	node13 
+//------edges------
+	node0 -> node4 [label=a
+	node4 -> node5 [label=cadabra
+	node4 -> node9 [label=bra
+	node9 -> node10 [label=
+	node9 -> node1 [label=cadabra
+	node4 -> node7 [label=dabra
+	node4 -> node15 [label=
+	node0 -> node11 [label=bra
+	node11 -> node12 [label=
+	node11 -> node2 [label=cadabra
+	node0 -> node13 [label=ra
+	node13 -> node14 [label=
+	node13 -> node3 [label=cadabra
+	node0 -> node6 [label=cadabra
+	node0 -> node8 [label=dabra
+	node0 -> node16 [label=
+//------suffix links------
+	node9 -> node11
+	node11 -> node13
+}
+";
+
+            Assert.AreEqual(expected, stree);
+
+
         }
 
 
@@ -23,7 +71,7 @@ namespace SuffixTree.Tests
             Tree = new SuffixTree<int>();
             for (int i = 0; i < Words20.Length; i++)
             {
-                Tree.AddWord(Words20[i], i);
+                //Tree.AddWord(Words20[i], i);
             }
         }
 
