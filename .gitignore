@@ -3,3 +3,7 @@ packages/Microsoft.AspNet.Mvc.5.2.2/Content/Web.config.install.xdt
 /packages
 /TestProject/bin
 /TestProject/obj
+/SuffixTree.Tests/bin
+/SuffixTree.Tests/obj
+/SuffixTree/bin
+/SuffixTree/obj
