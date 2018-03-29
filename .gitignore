@@ -1,0 +1,5 @@
+packages/Microsoft.AspNet.Mvc.5.2.2/Content/Web.config.install.xdt
+.vs
+/packages
+/TestProject/bin
+/TestProject/obj
