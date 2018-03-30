@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace SuffixTree
@@ -10,25 +9,21 @@ namespace SuffixTree
         private const int MaxWordLength = 100; //Max indexed word length
 
         private const int oo = int.MaxValue;
-        private readonly List<Node<T>> _nodes;
-        char[] text;
-        private readonly int _root;
+        private readonly Node<T> _root;
         private int _position = -1;
         private int _lastNodeIndex = -1;
-        private int _needSuffixLink;
+        private Node<T> _needSuffixLink;
 
         private int _remainder;
-        private int _activeNode;
+        private Node<T> _activeNode;
         private int _activeLength;
-        private int _activeEdge;
+        private Edge<T> _activeEdge;
+        private int _activeEdgePosition;
+        private string _source;
 
         public SuffixTree()
         {
-            _nodes = new List<Node<T>>(2 * MaxWordLength + 2);
-
-            for (var i = 0; i < 100; i++) _nodes.Add(null);
-
-            _root = NewNode(-1, -1);
+            _root = new Node<T>(++_lastNodeIndex);
             _activeNode = _root;
         }
 
@@ -37,75 +32,74 @@ namespace SuffixTree
             _remainder = 0;
             _activeNode = _root;
             _activeLength = 0;
-            _activeEdge = 0;
+            _activeEdge = null;
+            _activeEdgePosition = -1;
             _position = -1;
 
             if (word.Length > MaxWordLength) word = word.Substring(0, MaxWordLength);
-            text = string.Concat(word, '\0').ToCharArray();
-            foreach (var c in word) AddChar(c, value);
-            AddChar(Eow, value);
+            _source = string.Concat(word, '\0');
+            foreach (var c in _source) AddChar(c, value, _source);
         }
 
-        private void AddSuffixLink(int node)
+        private void AddSuffixLink(Node<T> node)
         {
-            if (_needSuffixLink > 0)
+            if (_needSuffixLink != null && node != _root)
             {
-                _nodes[_needSuffixLink].SuffixLink = node;
+                _needSuffixLink.SuffixLink = node;
             }
             _needSuffixLink = node;
         }
 
-        private char _ActiveEdgeChar => text[_activeEdge];
+        private char _ActiveEdgeChar => _activeEdge?.Source[_activeEdgePosition]??_source[_activeEdgePosition];
 
-        private bool WalkDown(int next)
+        private bool WalkDown(Edge<T> next)
         {
-            if (_activeLength > 0 && _activeLength >= _nodes[next].EdgeLength(_position))
+            if (_activeLength > 0 && _activeLength >= next.EdgeLength(_position))
             {
-                _activeEdge = _activeEdge + _nodes[next].EdgeLength(_position);
-                _activeLength = _activeLength - _nodes[next].EdgeLength(_position);
-                _activeNode = next;
+                _activeEdgePosition = _activeEdgePosition + next.EdgeLength(_position);
+                _activeLength = _activeLength - next.EdgeLength(_position);
+                _activeNode = next.Target;
                 return true;
             }
             return false;
         }
 
-        private int NewNode(int start, int end)
+        private Edge<T> NewEdge(int start, int end, string source)
         {
-            _nodes[++_lastNodeIndex] = new Node<T>(start, end);
-            return _lastNodeIndex;
+            var node = new Node<T>(++_lastNodeIndex);
+            var edge = new Edge<T>(start, end, source, node);
+            return edge;
         }
 
-        private void AddChar(char c, T value)
+        private void AddChar(char c, T value, string source)
         {
             ++_position;
-            //text[++_position] = c;
-            _needSuffixLink = -1;
+            _needSuffixLink = null;
             _remainder++;
             while (_remainder > 0)
             {
                 if (_activeLength == 0)
                 {
-                    _activeEdge = _position;
+                    _activeEdgePosition = _position;
                 }
 
-                if (!_nodes[_activeNode].Edges.ContainsKey(_ActiveEdgeChar))
+                if (!_activeNode.Edges.ContainsKey(_ActiveEdgeChar))
                 {
-                    int leaf = NewNode(_position, oo);
-                    _nodes[_activeNode].Edges[_ActiveEdgeChar] = leaf;
-                    _nodes[leaf].AddData(value);
+                    var newEdge = NewEdge(_position, oo, source);
+                    _activeNode.Edges[_ActiveEdgeChar] = newEdge;
+                    newEdge.Target.AddData(value);
                     if (_ActiveEdgeChar!= Eow) AddSuffixLink(_activeNode);
                     // rule 2
                 }
                 else
                 {
-                    _nodes[_activeNode].AddData(value);
-                    int next = _nodes[_activeNode].Edges[_ActiveEdgeChar];
-                    _nodes[next].AddData(value);
+                    _activeNode.AddData(value);
+                    Edge<T> next = _activeNode.Edges[_ActiveEdgeChar];
+                    next.Target.AddData(value);
                     if (WalkDown(next)) continue;
 
                     // observation 2
-                    if (text[_nodes[next].Start + _activeLength] == c)
-                    //if (_activeEdge + _activeLength == c)
+                    if (source[next.Start + _activeLength] == c)
                     {
                         // observation 1
                         _activeLength++;
@@ -114,14 +108,14 @@ namespace SuffixTree
                         break;
                     }
 
-                    int split = NewNode(_nodes[next].Start, _nodes[next].Start + _activeLength);
-                    _nodes[_activeNode].Edges[_ActiveEdgeChar] = split;
-                    int leaf = NewNode(_position, oo);
-                    _nodes[leaf].AddData(value);
-                    _nodes[split].Edges[c] = leaf;
-                    _nodes[next].Start = _nodes[next].Start + _activeLength;
-                    _nodes[split].Edges[text[_nodes[next].Start]] = next;
-                    AddSuffixLink(split);
+                    var split = NewEdge(next.Start, next.Start + _activeLength, source);
+                    _activeNode.Edges[_ActiveEdgeChar] = split;
+                    var leaf = NewEdge(_position, oo, source);
+                    leaf.Target.AddData(value);
+                    split.Target.Edges[c] = leaf;
+                    next.Start = next.Start + _activeLength;
+                    split.Target.Edges[source[next.Start]] = next;
+                    AddSuffixLink(split.Target);
                     // rule 2
                 }
 
@@ -130,18 +124,18 @@ namespace SuffixTree
                 {
                     // rule 1
                     _activeLength--;
-                    _activeEdge = _position - _remainder + 1;
+                    _activeEdgePosition = _position - _remainder + 1;
                 }
                 else
                 {
-                    _activeNode = _nodes[_activeNode].SuffixLink > 0 ? _nodes[_activeNode].SuffixLink : _root;
+                    _activeNode = _activeNode.SuffixLink ?? _root;
                 }
             }
         }
 
-        private string EdgeString(int node)
+        private string EdgeString(Edge<T> edge)
         {
-            return new string( text, _nodes[node].Start, Math.Min(_position + 1, _nodes[node].End) - _nodes[node].Start);
+            return new string( edge.Source.ToCharArray(), edge.Start, Math.Min(edge.End, edge.Source.Length) - edge.Start);
         }
 
         public string PrintTree()
@@ -161,55 +155,55 @@ namespace SuffixTree
             return sb.ToString();
         }
 
-        private void PrintLeaves(int x, StringBuilder sb)
+        private void PrintLeaves(Node<T> x, StringBuilder sb)
         {
-            if (_nodes[x].Edges.Count == 0)
+            if (x.Edges.Count == 0)
             {
-                sb.AppendLine("\tnode" + x + " ");
+                sb.AppendLine("\tnode" + x.Number + " ");
             }
             else
-                foreach (int child in _nodes[x].Edges.Values)
+                foreach (var child in x.Edges.Values)
                 {
-                    PrintLeaves(child, sb);
+                    PrintLeaves(child.Target, sb);
                 }
         }
 
-        void printInternalNodes(int x, StringBuilder sb)
+        void printInternalNodes(Node<T> x, StringBuilder sb)
         {
             if (x != _root
-                && _nodes[x].Edges.Count > 0)
+                && x.Edges.Count > 0)
             {
-                sb.AppendLine("\tnode" + x + " ");
+                sb.AppendLine("\tnode" + x.Number + " ");
             }
 
             
-            foreach (int child in _nodes[x].Edges.Values)
+            foreach (var child in x.Edges.Values)
             {
-                printInternalNodes(child, sb);
+                printInternalNodes(child.Target, sb);
             }
 
         }
 
-        void printEdges(int x, StringBuilder sb)
+        void printEdges(Node<T> x, StringBuilder sb)
         {
-            foreach (int child in _nodes[x].Edges.Values)
+            foreach (var child in x.Edges.Values)
             {
                 sb.AppendLine("\tnode"
-                        + x + " -> node"
-                        + child + " [label=" +EdgeString(child));
-                printEdges(child, sb);
+                        + x.Number + " -> node"
+                        + child.Target.Number + " [label=" + EdgeString(child));
+                printEdges(child.Target, sb);
             }
         }
 
-        void printSLinks(int x, StringBuilder sb)
+        void printSLinks(Node<T> x, StringBuilder sb)
         {
-            if (_nodes[x].SuffixLink > 0)
+            if (x.SuffixLink != null)
             {
-                sb.AppendLine("\tnode" + x + " -> node" + _nodes[x].SuffixLink);
+                sb.AppendLine("\tnode" + x.Number + " -> node" + x.SuffixLink.Number);
             }
-            foreach (int child in _nodes[x].Edges.Values)
+            foreach (var child in x.Edges.Values)
             {
-                printSLinks(child, sb);
+                printSLinks(child.Target, sb);
             }
         }
     }

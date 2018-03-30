@@ -1,38 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace SuffixTree
 {
-    class Node<T>
+    public class Node<T>
     {
-        public int Start { get; internal set; }
-        public readonly int End;
-        public int SuffixLink;
-
-        private Dictionary<char, int> _edges;
-        public Dictionary<char, int> Edges => _edges ?? (_edges = new Dictionary<char, int>());
+        public Node<T> SuffixLink;
+        private Dictionary<char, Edge<T>> _edges;
+        public Dictionary<char, Edge<T>> Edges => _edges ?? (_edges = new Dictionary<char, Edge<T>>());
         private List<T> _data;
         public List<T> Data => _data ?? (_data = new List<T>());
 
-        public Node(int start, int end)
-        {
-            Start = start;
-            End = end;
-        }
+        public int Number { get; }
 
-        public int EdgeLength(int position)
+        public Node(int number)
         {
-            return Math.Min(End, position + 1) - Start;
+            Number = number;
         }
 
         private T _previouslyAssignedValue;
         public void AddData(T value)
         {
-            if (Start > 1 && !value.Equals(_previouslyAssignedValue))
-            {
-                Data.Add(value);
-                _previouslyAssignedValue = value;
-            }
+            //if (Start > 1 && !value.Equals(_previouslyAssignedValue))
+            //{
+            //    Data.Add(value);
+            //    _previouslyAssignedValue = value;
+            //}
             
         }
     }
