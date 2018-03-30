@@ -17,6 +17,7 @@ namespace SuffixTree
         public string Source { get; }
         public Node<T> Target { get; }
 
+        public string Label => Source.Substring(Start, Math.Min(End, Source.Length) - Start);
 
         public int EdgeLength(int position)
         {

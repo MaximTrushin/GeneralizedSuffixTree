@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SuffixTree
 {
@@ -18,14 +20,27 @@ namespace SuffixTree
         }
 
         private T _previouslyAssignedValue;
+
         public void AddData(T value)
         {
-            //if (Start > 1 && !value.Equals(_previouslyAssignedValue))
-            //{
-            //    Data.Add(value);
-            //    _previouslyAssignedValue = value;
-            //}
+            if (value.Equals(_previouslyAssignedValue) && _data != null) return;
+            Data.Add(value);
+            _previouslyAssignedValue = value;
+        }
+
+
+        public IEnumerable<T> GetData()
+        {
+            if (_data == null) yield break;
+            IEnumerable<T> result = _data;
+            if (_edges != null)
+            {
+                var childData = _edges.Values.Select((e) => e.Target).SelectMany((t) => t.GetData());
+                result = _data.Concat(childData).Distinct();
+            }
             
+            foreach (var d in result)
+                yield return d;
         }
     }
 }

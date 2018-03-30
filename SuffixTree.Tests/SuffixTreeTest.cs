@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 
 namespace SuffixTree.Tests
@@ -8,21 +9,21 @@ namespace SuffixTree.Tests
     {
         protected SuffixTree<int> Tree { get; private set; }
 
-        [Test]
-        public void GenericSuffixTree()
-        {
-            Tree = new SuffixTree<int>();
-            for (int i = 0; i < Words20.Length; i++)
-            {
-                Tree.AddWord(Words20[i], i);
-            }
-        }
+        //[Test]
+        //public void GenericSuffixTree()
+        //{
+        //    Tree = new SuffixTree<int>();
+        //    for (int i = 0; i < Words20.Length; i++)
+        //    {
+        //        Tree.AddWord(Words20[i], i);
+        //    }
+        //}
 
         [Test]
         public void MyTestSuffixTree()
         {
             var s = "abracadabra";
-            var tree = new SuffixTree<int>();
+            var tree = new SuffixTree<int>(0);
             tree.AddWord(s, 1);
             var stree = tree.PrintTree().Replace("\0", "");
             Console.WriteLine(stree);
@@ -79,11 +80,11 @@ namespace SuffixTree.Tests
         [OneTimeSetUp]
         public virtual void Setup()
         {
-            //Tree = new SuffixTree<int>();
-            //for (int i = 0; i < Words20.Length; i++)
-            //{
-            //    Tree.AddWord(Words20[i], i);
-            //}
+            Tree = new SuffixTree<int>(0);
+            for (int i = 0; i < Words20.Length; i++)
+            {
+                Tree.AddWord(Words20[i], i);
+            }
         }
 
 
@@ -110,8 +111,8 @@ namespace SuffixTree.Tests
                                             "magas"
                                         };
 
-        //[TestCase("o", new[] { 0, 1, 2, 6, 7, 11, 12, 13, 14 })]
-        //[TestCase("ov", new[] { 0, 1, 2 })]
+        [TestCase("o", new[] { 0, 1, 2, 6, 7, 11, 12, 13, 14 })]
+        [TestCase("ov", new[] { 0, 1, 2 })]
         //[TestCase("ove", new[] { 0, 1, 2 })]
         //[TestCase("over", new[] { 0, 1, 2 })]
         //[TestCase("overc", new[] { 0, 1, 2 })]
@@ -992,11 +993,11 @@ namespace SuffixTree.Tests
         //[TestCase("g", new[] { 18, 19 })]
         //[TestCase("ga", new[] { 18, 19 })]
         //[TestCase("a", new[] { 2, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19 })]
-        //public void Test(string query, IEnumerable<int> expected)
-        //{
-        //    IEnumerable<int> actual = Tree.Search(query);
-        //    CollectionAssert.AreEquivalent(expected, actual);
-        //}
+        public void Test(string query, IEnumerable<int> expected)
+        {
+            IEnumerable<int> actual = Tree.Retrieve(query);
+            CollectionAssert.AreEquivalent(expected, actual);
+        }
 
     }
 }

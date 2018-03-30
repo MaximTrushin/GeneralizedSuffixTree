@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace SuffixTree
 {
     public class SuffixTree<T>
     {
+        private readonly int _minSuffixLength;
         private static char Eow = '\0'; //End of word
         private const int MaxWordLength = 100; //Max indexed word length
 
@@ -17,12 +20,13 @@ namespace SuffixTree
         private int _remainder;
         private Node<T> _activeNode;
         private int _activeLength;
-        private Edge<T> _activeEdge;
+        //private Edge<T> _activeEdge;
         private int _activeEdgePosition;
         private string _source;
 
-        public SuffixTree()
+        public SuffixTree(int minSuffixLength)
         {
+            _minSuffixLength = minSuffixLength;
             _root = new Node<T>(++_lastNodeIndex);
             _activeNode = _root;
         }
@@ -32,7 +36,7 @@ namespace SuffixTree
             _remainder = 0;
             _activeNode = _root;
             _activeLength = 0;
-            _activeEdge = null;
+            //_activeEdge = null;
             _activeEdgePosition = -1;
             _position = -1;
 
@@ -96,7 +100,7 @@ namespace SuffixTree
                 else
                 {
                     //_activeEdge = next;
-                    //_activeNode.AddData(value);
+                    _activeNode.AddData(value);
                     //next.Target.AddData(value);
                     if (WalkDown(next)) continue; // observation 2
 
@@ -117,6 +121,8 @@ namespace SuffixTree
                     split.Target.Edges[c] = leaf;
                     next.Start = next.Start + _activeLength;
                     split.Target.Edges[next.Source[next.Start]] = next;
+                    split.Target.Data.AddRange(_activeNode.Data);
+                    split.Target.AddData(value);
                     AddSuffixLink(split.Target);
                     // rule 2
                 }
@@ -135,9 +141,74 @@ namespace SuffixTree
             }
         }
 
+
+        public IEnumerable<T> Retrieve(string word)
+        {
+            if (word.Length < _minSuffixLength) return Enumerable.Empty<T>();
+            var tmpNode = SearchNode(word);
+            return tmpNode == null
+                ? Enumerable.Empty<T>()
+                : tmpNode.GetData();
+        }
+
+
+        /**
+         * Returns the tree NodeA<T> (if present) that corresponds to the given string.
+         */
+        private Node<T> SearchNode(string word)
+        {
+            /*
+             * Verifies if exists a path from the root to a NodeA<T> such that the concatenation
+             * of all the labels on the path is a superstring of the given word.
+             * If such a path is found, the last NodeA<T> on it is returned.
+             */
+            var currentNode = _root;
+
+            for (var i = 0; i < word.Length; ++i)
+            {
+                var ch = word[i];
+                // follow the EdgeA<T> corresponding to this char
+                var currentEdge = currentNode.Edges[ch];
+                if (null == currentEdge)
+                {
+                    // there is no EdgeA<T> starting with this char
+                    return null;
+                }
+                var label = currentEdge.Label;
+                var lenToMatch = Math.Min(word.Length - i, label.Length);
+
+                if (!RegionMatches(word, i, label, 0, lenToMatch))
+                {
+                    // the label on the EdgeA<T> does not correspond to the one in the string to search
+                    return null;
+                }
+
+                if (label.Length >= word.Length - i)
+                {
+                    return currentEdge.Target;
+                }
+                // advance to next NodeA<T>
+                currentNode = currentEdge.Target;
+                i += lenToMatch - 1;
+            }
+
+            return null;
+        }
+
+        private static bool RegionMatches(string first, int toffset, string second, int ooffset, int len)
+        {
+            for (var i = 0; i < len; i++)
+            {
+                var one = first[toffset + i];
+                var two = second[ooffset + i];
+                if (one != two) return false;
+            }
+            return true;
+        }
+
         private string EdgeString(Edge<T> edge)
         {
-            return new string( edge.Source.ToCharArray(), edge.Start, Math.Min(edge.End, edge.Source.Length) - edge.Start);
+            return edge.Source.Substring(edge.Start, Math.Min(edge.End, edge.Source.Length) - edge.Start);
         }
 
         public string PrintTree()
@@ -208,5 +279,6 @@ namespace SuffixTree
                 printSLinks(child.Target, sb);
             }
         }
+
     }
 }
