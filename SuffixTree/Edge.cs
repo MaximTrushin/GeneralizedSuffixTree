@@ -20,7 +20,8 @@ namespace SuffixTree
 
         public int EdgeLength(int position)
         {
-            return Math.Min(End, position + 1) - Start;
+            //return Math.Min(End, position + 1) - Start;
+            return (End != int.MaxValue?End:Source.Length) - Start;
         }
     }
 }

@@ -50,11 +50,11 @@ namespace SuffixTree
             _needSuffixLink = node;
         }
 
-        private char _ActiveEdgeChar => _activeEdge?.Source[_activeEdgePosition]??_source[_activeEdgePosition];
+        private char _ActiveEdgeChar => /*_activeEdge?.Source[_activeEdgePosition]??*/_source[_activeEdgePosition];
 
         private bool WalkDown(Edge<T> next)
         {
-            if (_activeLength > 0 && _activeLength >= next.EdgeLength(_position))
+            if (/*_activeLength > 0 && */_activeLength >= next.EdgeLength(_position))
             {
                 _activeEdgePosition = _activeEdgePosition + next.EdgeLength(_position);
                 _activeLength = _activeLength - next.EdgeLength(_position);
@@ -83,9 +83,11 @@ namespace SuffixTree
                     _activeEdgePosition = _position;
                 }
 
-                if (!_activeNode.Edges.ContainsKey(_ActiveEdgeChar))
+                _activeNode.Edges.TryGetValue(_ActiveEdgeChar, out var next);
+                if (next == null)
                 {
                     var newEdge = NewEdge(_position, oo, source);
+                    //_activeEdge = newEdge;
                     _activeNode.Edges[_ActiveEdgeChar] = newEdge;
                     newEdge.Target.AddData(value);
                     if (_ActiveEdgeChar!= Eow) AddSuffixLink(_activeNode);
@@ -93,13 +95,13 @@ namespace SuffixTree
                 }
                 else
                 {
-                    _activeNode.AddData(value);
-                    Edge<T> next = _activeNode.Edges[_ActiveEdgeChar];
-                    next.Target.AddData(value);
-                    if (WalkDown(next)) continue;
+                    //_activeEdge = next;
+                    //_activeNode.AddData(value);
+                    //next.Target.AddData(value);
+                    if (WalkDown(next)) continue; // observation 2
 
-                    // observation 2
-                    if (source[next.Start + _activeLength] == c)
+
+                    if (next.Source[next.Start + _activeLength] == c)
                     {
                         // observation 1
                         _activeLength++;
@@ -108,13 +110,13 @@ namespace SuffixTree
                         break;
                     }
 
-                    var split = NewEdge(next.Start, next.Start + _activeLength, source);
+                    var split = NewEdge(next.Start, next.Start + _activeLength, next.Source);
                     _activeNode.Edges[_ActiveEdgeChar] = split;
                     var leaf = NewEdge(_position, oo, source);
                     leaf.Target.AddData(value);
                     split.Target.Edges[c] = leaf;
                     next.Start = next.Start + _activeLength;
-                    split.Target.Edges[source[next.Start]] = next;
+                    split.Target.Edges[next.Source[next.Start]] = next;
                     AddSuffixLink(split.Target);
                     // rule 2
                 }

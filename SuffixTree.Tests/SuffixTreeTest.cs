@@ -9,6 +9,16 @@ namespace SuffixTree.Tests
         protected SuffixTree<int> Tree { get; private set; }
 
         [Test]
+        public void GenericSuffixTree()
+        {
+            Tree = new SuffixTree<int>();
+            for (int i = 0; i < Words20.Length; i++)
+            {
+                Tree.AddWord(Words20[i], i);
+            }
+        }
+
+        [Test]
         public void MyTestSuffixTree()
         {
             var s = "abracadabra";
@@ -16,6 +26,7 @@ namespace SuffixTree.Tests
             tree.AddWord(s, 1);
             var stree = tree.PrintTree().Replace("\0", "");
             Console.WriteLine(stree);
+            //Console.WriteLine(Tree.PrintTree());
 
             var expected = @"digraph {
 //------leaves------
@@ -68,11 +79,11 @@ namespace SuffixTree.Tests
         [OneTimeSetUp]
         public virtual void Setup()
         {
-            Tree = new SuffixTree<int>();
-            for (int i = 0; i < Words20.Length; i++)
-            {
-                //Tree.AddWord(Words20[i], i);
-            }
+            //Tree = new SuffixTree<int>();
+            //for (int i = 0; i < Words20.Length; i++)
+            //{
+            //    Tree.AddWord(Words20[i], i);
+            //}
         }
 
 
