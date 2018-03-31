@@ -13,10 +13,11 @@ namespace SuffixTree
         }
 
         public int Start { get; internal set; }
-        public int End { get; }
+        public int End { get; } //End not included in the range [start, end)
         public string Source { get; }
         public Node<T> Target { get; }
 
+        //End not included in the range [start, end)
         public string Label => Source.Substring(Start, Math.Min(End, Source.Length) - Start);
 
         public int EdgeLength(int position)
