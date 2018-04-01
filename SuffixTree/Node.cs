@@ -8,22 +8,24 @@ namespace SuffixTree
     public class Node<T>
     {
         public Node<T> SuffixLink;
-        private Dictionary<char, Edge<T>> _edges;
-        public Dictionary<char, Edge<T>> Edges => _edges ?? (_edges = new Dictionary<char, Edge<T>>());
+        private Dictionary<char, Node<T>> _edges;
+        public Dictionary<char, Node<T>> Edges => _edges ?? (_edges = new Dictionary<char, Node<T>>());
         private List<T> _data;
         public List<T> Data => _data ?? (_data = new List<T>());
 
+        public string Label { get; internal set; }
         public int Number { get; }
         public int WordNumber { get; private set; }
 
-        public Node(int number, int wordNumber)
+        public Node(string label, int number, int wordNumber)
         {
+            Label = label;
             Number = number;
             WordNumber = wordNumber;
         }
 
         private T _previouslyAssignedValue;
-        private bool _dataInitialized = false;
+        private bool _dataInitialized;
 
         public void AddData(T value, int wordNumber)
         {
@@ -52,11 +54,11 @@ namespace SuffixTree
                 yield return d;
         }
 
-        public Edge<T> GetEdge(char activeEdgeChar, int wordNumber)
+        public Node<T> GetEdge(char activeEdgeChar, int wordNumber)
         {
             if (_edges == null) return null;
             _edges.TryGetValue(activeEdgeChar, out var result);
-            if (result?.Target.WordNumber != wordNumber) return null;
+            if (result?.WordNumber != wordNumber) return null;
             return result;
         }
 

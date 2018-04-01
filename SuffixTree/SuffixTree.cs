@@ -29,7 +29,7 @@ namespace SuffixTree
         public SuffixTree(int minSuffixLength)
         {
             _minSuffixLength = minSuffixLength;
-            _root = new Node<T>(++_lastNodeIndex, _wordNumber);
+            _root = new Node<T>(string.Empty,++_lastNodeIndex, _wordNumber);
             _activeNode = _root;
         }
 
@@ -64,31 +64,26 @@ namespace SuffixTree
 
         private char _ActiveEdgeChar => /*_activeEdge?.Source[_activeEdgePosition]??*/_source[_activeEdgePosition];
 
-        private bool WalkDown(Edge<T> next, T value) //Canonize
+        private bool WalkDown(Node<T> next) //Canonize
         {
             if (/*_activeLength > 0 && */_activeLength >= next.Label.Length)
             {
                 _activeEdgePosition = _activeEdgePosition + next.Label.Length;
                 _activeLength = _activeLength - next.Label.Length;
-                _activeNode = next.Target;
-                _activeNode.AddData(value, _wordNumber);
+                _activeNode = next;
+                //_activeNode.AddData(value, _wordNumber);
                 return true;
             }
             return false;
         }
 
-        private Edge<T> NewEdge(int start, int end, string source)
+        private Node<T> NewNode(int start, int end, string source)
         {
-            var node = new Node<T>(++_lastNodeIndex, _wordNumber);
-
             if (start == source.Length)
             { //Create terminal edge
-                return new Edge<T>(_terminal, node);
+                return new Node<T>(_terminal, ++_lastNodeIndex, _wordNumber);
             }
-
-
-            var edge = new Edge<T>(source.Substring(start, end - start), node);
-            return edge;
+            return  new Node<T>(source.Substring(start, end - start + 1), ++_lastNodeIndex, _wordNumber);
         }
 
         /// <summary>
@@ -97,25 +92,25 @@ namespace SuffixTree
         /// <param name="start"></param>
         /// <param name="end">End of edge (not included).</param>
         /// <param name="value"></param>
-        public Edge<T> AddEdge(int start, int end, T value)
+        public Node<T> AddEdge(int start, int end, T value)
         {
             var c = _source[start];
             _activeNode.Edges.TryGetValue(c, out var edge);
             if (edge == null)
             {
-                edge = NewEdge(start, end, _source);
-                edge.Target.AddData(value, _wordNumber);
+                edge = NewNode(start, end, _source);
+                edge.AddData(value, _wordNumber);
                 return _activeNode.Edges[c] = edge;
             }
 
             var activeNode = _activeNode;
             var position = start;
-            var sourceEnd = Math.Min(end, _source.Length - 1); //TODO: Remove Min
+            var sourceEnd = end;
             
             do
             {
                 var edgePosition = 0;
-                var edgeEnd = edge.Label.Length-1; //TODO remove Min
+                var edgeEnd = edge.Label.Length-1;
                 while (position <= sourceEnd && edgePosition <= edgeEnd && _source[position] == edge.Label[edgePosition])
                 {
                     position++;
@@ -124,36 +119,36 @@ namespace SuffixTree
                 if (position > sourceEnd && edgePosition > edgeEnd)
                 {
                     //Existing edge is equal to substring we want to create edge for.
-                    edge.Target.AddData(value, _wordNumber);
+                    edge.AddData(value, _wordNumber);
                     return edge;
                 }
                 if (edgePosition > edgeEnd)
                 { //Existing edge is substring.
                     
-                    edge.Target.AddData(value, _wordNumber);
-                    edge.Target.Edges.TryGetValue(_source[position], out var nextEdge);
+                    edge.AddData(value, _wordNumber);
+                    edge.Edges.TryGetValue(_source[position], out var nextEdge);
                     if (nextEdge == null)
                     {
-                        nextEdge = NewEdge(position, _source.Length, _source);
-                        nextEdge.Target.AddData(value, _wordNumber);
-                        return edge.Target.Edges[_source[position]] = nextEdge; //Adding leaf
+                        nextEdge = NewNode(position, _source.Length - 1, _source);
+                        nextEdge.AddData(value, _wordNumber);
+                        return edge.Edges[_source[position]] = nextEdge; //Adding leaf
                     }
                     //start = position;
-                    activeNode = edge.Target;
+                    activeNode = edge;
                     edge = nextEdge;
                     continue;
                 }
                 // symbol mismatch. Need to split.
-                var split = NewEdge(0, edgePosition, edge.Label); 
+                var split = NewNode(0, edgePosition - 1, edge.Label); 
                 activeNode.Edges[edge.Label[0]] = split;
-                var leaf = NewEdge(position, _source.Length, _source);
-                leaf.Target.AddData(value, _wordNumber);
-                split.Target.Edges[position<_source.Length?_source[position]:'\0'] = leaf; 
+                var leaf = NewNode(position, _source.Length - 1, _source);
+                leaf.AddData(value, _wordNumber);
+                split.Edges[position<_source.Length?_source[position]:'\0'] = leaf; 
                 edge.Label = edge.Label.Substring(edgePosition);
-                split.Target.Edges[edge.Label[0]] = edge;
-                split.Target.Data.AddRange(edge.Target.Data.Where(i => !i.Equals(value)));
+                split.Edges[edge.Label[0]] = edge;
+                split.Data.AddRange(edge.Data.Where(i => !i.Equals(value)));
                 //_activeNode.Data.ForEach(i => { if (!i.Equals(value)) split.Target.Data.Add(i); });
-                split.Target.AddData(value, _wordNumber);
+                split.AddData(value, _wordNumber);
                 return leaf;
 
             } while (position <= end);
@@ -175,17 +170,14 @@ namespace SuffixTree
                 var next = _activeNode.GetEdge(_ActiveEdgeChar, _wordNumber);
                 if (next == null)
                 {
-                    var newEdge = AddEdge(_activeEdgePosition, _source.Length, value);
-                    newEdge.Target.AddData(value, _wordNumber);//TODO put inside AddEdge
+                    AddEdge(_activeEdgePosition, _source.Length - 1, value);
                     if (_ActiveEdgeChar!= Eow) AddSuffixLink(_activeNode);
                     // rule 2
                 }
                 else
                 {
-                    //_activeEdge = next;
                     _activeNode.AddData(value, _wordNumber);
-                    //next.Target.AddData(value);
-                    if (WalkDown(next, value)) continue; // observation 2
+                    if (WalkDown(next)) continue; // observation 2
 
 
                     if (next.Label[_activeLength] == c)
@@ -197,17 +189,17 @@ namespace SuffixTree
                         break;
                     }
 
-                    var split = NewEdge(0, _activeLength, next.Label);
+                    var split = NewNode(0, _activeLength - 1, next.Label);
                     _activeNode.Edges[next.Label[0]] = split;
-                    var leaf = NewEdge(_position, _source.Length, _source);
-                    leaf.Target.AddData(value, _wordNumber);
-                    split.Target.Edges[_source[_position]] = leaf;
+                    var leaf = NewNode(_position, _source.Length - 1, _source);
+                    leaf.AddData(value, _wordNumber);
+                    split.Edges[_source[_position]] = leaf;
                     next.Label = next.Label.Substring(_activeLength);
-                    split.Target.Edges[next.Label[0]] = next;
+                    split.Edges[next.Label[0]] = next;
                     //_activeNode.Data.ForEach(i => { if (!i.Equals(value)) split.Target.Data.Add(i); });
-                    split.Target.Data.AddRange(next.Target.Data.Where(i => !i.Equals(value)));
-                    split.Target.AddData(value, _wordNumber);
-                    AddSuffixLink(split.Target);
+                    split.Data.AddRange(next.Data.Where(i => !i.Equals(value)));
+                    split.AddData(value, _wordNumber);
+                    AddSuffixLink(split);
                     // rule 2
                 }
 
@@ -269,10 +261,10 @@ namespace SuffixTree
 
                 if (label.Length >= word.Length - i)
                 {
-                    return currentEdge.Target;
+                    return currentEdge;
                 }
                 // advance to next NodeA<T>
-                currentNode = currentEdge.Target;
+                currentNode = currentEdge;
                 i += lenToMatch - 1;
             }
 
@@ -316,7 +308,7 @@ namespace SuffixTree
             else
                 foreach (var child in x.Edges.Values)
                 {
-                    PrintLeaves(child.Target, sb);
+                    PrintLeaves(child, sb);
                 }
         }
 
@@ -331,7 +323,7 @@ namespace SuffixTree
             
             foreach (var child in x.Edges.Values)
             {
-                printInternalNodes(child.Target, sb);
+                printInternalNodes(child, sb);
             }
 
         }
@@ -341,8 +333,8 @@ namespace SuffixTree
             foreach (var child in x.Edges.Values)
             {
                 sb.AppendLine(x.Number + "->"
-                        + child.Target.Number + "=" + child.Label);
-                printEdges(child.Target, sb);
+                        + child.Number + "=" + child.Label);
+                printEdges(child, sb);
             }
         }
 
@@ -354,7 +346,7 @@ namespace SuffixTree
             }
             foreach (var child in x.Edges.Values)
             {
-                printSLinks(child.Target, sb);
+                printSLinks(child, sb);
             }
         }
 
