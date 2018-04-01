@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace SuffixTree
@@ -15,7 +13,7 @@ namespace SuffixTree
 
         public string Label { get; internal set; }
         public int Number { get; }
-        public int WordNumber { get; private set; }
+        public int WordNumber { get; internal set; }
 
         public Node(string label, int number, int wordNumber)
         {
@@ -24,42 +22,40 @@ namespace SuffixTree
             WordNumber = wordNumber;
         }
 
-        private T _previouslyAssignedValue;
-        private bool _dataInitialized;
-
+        private int _prevWordNumber = -1;
         public void AddData(T value, int wordNumber)
         {
-            if (_dataInitialized)
+            if (_prevWordNumber == wordNumber)
             {
-                if (value.Equals(_previouslyAssignedValue)) return;
+                return;
             }
-            else _dataInitialized = true;
+            _prevWordNumber = wordNumber;
             Data.Add(value);
-            _previouslyAssignedValue = value;
-            WordNumber = wordNumber;
         }
 
 
         public IEnumerable<T> GetData()
         {
-            if (_data == null) yield break;
+             
             IEnumerable<T> result = _data;
             if (_edges != null)
             {
-                var childData = _edges.Values.SelectMany((t) => t.GetData());
-                result = _data.Concat(childData).Distinct();
+                result = _edges.Values.SelectMany((t) => t.GetData()).Distinct();
+                if (_data != null)
+                    result = _data.Concat(result).Distinct();
             }
 
             foreach (var d in result)
                 yield return d;
         }
 
-        public Node<T> GetEdge(char activeEdgeChar, int wordNumber)
+        public Node<T> GetEdge(char activeEdgeChar, int wordNumber, out Node<T> found)
         {
+            found = null;
             if (_edges == null) return null;
-            _edges.TryGetValue(activeEdgeChar, out var result);
-            if (result?.WordNumber != wordNumber) return null;
-            return result;
+            _edges.TryGetValue(activeEdgeChar, out found);
+            if (found?.WordNumber != wordNumber) return null;
+            return found;
         }
 
     }

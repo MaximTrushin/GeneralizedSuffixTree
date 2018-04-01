@@ -18,12 +18,12 @@ namespace SuffixTree.Tests
             Console.WriteLine(stree);
             //Console.WriteLine(Tree.PrintTree());
 
-            var expected = @"leaves:{5,1,7,2,3,6,8,}
+            var expected = @"leaves:{1,5,7,2,3,6,8,}
 nodes:{4,}
 edges:{
 0->4=a
-4->5=cadabra
 4->1=bracadabra
+4->5=cadabra
 4->7=dabra
 0->2=bracadabra
 0->3=racadabra
