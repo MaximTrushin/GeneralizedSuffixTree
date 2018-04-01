@@ -8,67 +8,28 @@ namespace SuffixTree.Tests
     public class GenericSuffixTreeTests
     {
         protected SuffixTree<int> Tree { get; private set; }
-
-        //[Test]
-        //public void GenericSuffixTree()
-        //{
-        //    Tree = new SuffixTree<int>();
-        //    for (int i = 0; i < Words20.Length; i++)
-        //    {
-        //        Tree.AddWord(Words20[i], i);
-        //    }
-        //}
-       
-
-
+        [Test]
         public void MyTestSuffixTree()
         {
-            var s = "abracadabra";
+            const string s = "abracadabra";
             var tree = new SuffixTree<int>(0);
             tree.AddWord(s, 1);
             var stree = tree.PrintTree().Replace("\0", "");
             Console.WriteLine(stree);
             //Console.WriteLine(Tree.PrintTree());
 
-            var expected = @"digraph {
-//------leaves------
-	node5 
-	node10 
-	node1 
-	node7 
-	node15 
-	node12 
-	node2 
-	node14 
-	node3 
-	node6 
-	node8 
-	node16 
-//------internal _nodes------
-	node4 
-	node9 
-	node11 
-	node13 
-//------edges------
-	node0 -> node4 [label=a
-	node4 -> node5 [label=cadabra
-	node4 -> node9 [label=bra
-	node9 -> node10 [label=
-	node9 -> node1 [label=cadabra
-	node4 -> node7 [label=dabra
-	node4 -> node15 [label=
-	node0 -> node11 [label=bra
-	node11 -> node12 [label=
-	node11 -> node2 [label=cadabra
-	node0 -> node13 [label=ra
-	node13 -> node14 [label=
-	node13 -> node3 [label=cadabra
-	node0 -> node6 [label=cadabra
-	node0 -> node8 [label=dabra
-	node0 -> node16 [label=
-//------suffix links------
-	node9 -> node11
-	node11 -> node13
+            var expected = @"leaves:{5,1,7,2,3,6,8,}
+nodes:{4,}
+edges:{
+0->4=a
+4->5=cadabra
+4->1=bracadabra
+4->7=dabra
+0->2=bracadabra
+0->3=racadabra
+0->6=cadabra
+0->8=dabra
+links:{
 }
 ";
 

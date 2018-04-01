@@ -23,11 +23,15 @@ namespace SuffixTree
         }
 
         private T _previouslyAssignedValue;
+        private bool _dataInitialized = false;
 
         public void AddData(T value, int wordNumber)
         {
-            if (value.Equals(_previouslyAssignedValue) && _data != null && _data.Count > 0) return;
-            //Debug.Assert(Data.IndexOf(value) == 0);
+            if (_dataInitialized)
+            {
+                if (value.Equals(_previouslyAssignedValue)) return;
+            }
+            else _dataInitialized = true;
             Data.Add(value);
             _previouslyAssignedValue = value;
             WordNumber = wordNumber;
