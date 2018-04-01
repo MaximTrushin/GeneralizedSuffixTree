@@ -40,10 +40,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SuffixTreePerformanceTests.cs" />
     <Compile Include="SuffixTreeTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestCaseGeneration\NonsenseGeneration.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="JetBrains.DotMemoryUnit">
+      <Version>3.0.20171219.105559</Version>
+    </PackageReference>
     <PackageReference Include="NUnit">
       <Version>3.10.1</Version>
     </PackageReference>
@@ -53,6 +58,11 @@
       <Project>{9cb81450-139c-4af1-9d38-b14c94d8df97}</Project>
       <Name>SuffixTree</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestCaseGeneration\english-words.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
