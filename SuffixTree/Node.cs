@@ -8,8 +8,8 @@ namespace SuffixTree
         public Node<T> SuffixLink;
         private Dictionary<char, Node<T>> _edges;
         public Dictionary<char, Node<T>> Edges => _edges ?? (_edges = new Dictionary<char, Node<T>>());
-        private List<T> _data;
-        public List<T> Data => _data ?? (_data = new List<T>());
+        private HashSet<T> _data;
+        public HashSet<T> Data => _data ?? (_data = new HashSet<T>());
 
         public string Label { get; internal set; }
         public int Number { get; }
