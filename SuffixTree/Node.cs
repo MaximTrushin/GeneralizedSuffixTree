@@ -44,12 +44,12 @@ namespace SuffixTree
         {
             if (_data == null) yield break;
             IEnumerable<T> result = _data;
-            //if (_edges != null)
-            //{
-            //    var childData = _edges.Values.Select((e) => e.Target).SelectMany((t) => t.GetData());
-            //    result = _data.Concat(childData).Distinct();
-            //}
-            
+            if (_edges != null)
+            {
+                var childData = _edges.Values.SelectMany((t) => t.GetData());
+                result = _data.Concat(childData).Distinct();
+            }
+
             foreach (var d in result)
                 yield return d;
         }
