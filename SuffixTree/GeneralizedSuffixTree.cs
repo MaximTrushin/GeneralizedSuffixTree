@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
 namespace SuffixTree
 {
-    public class SuffixTree<T>
+    public class GeneralizedSuffixTree<T>
     {
         private readonly int _minSuffixLength;
         private const int MaxWordLength = 100; //Max indexed word length
@@ -22,8 +23,9 @@ namespace SuffixTree
         private string _source;
         private int _wordNumber;
         private T _value;
+        private Node<T> _lastLeaf;
 
-        public SuffixTree(int minSuffixLength)
+        public GeneralizedSuffixTree(int minSuffixLength)
         {
             _minSuffixLength = minSuffixLength;
             _root = new Node<T>(string.Empty,++_lastNodeIndex, _wordNumber);
@@ -45,13 +47,21 @@ namespace SuffixTree
             foreach (var c in _source) AddChar(c); AddChar('\0');
         }
 
-        private void AddSuffixLink(Node<T> node)
+        private void AddSuffixLink(Node<T> node, Node<T> leaf)
         {
-            if (_needSuffixLink != null && node != _root)
+            if (_needSuffixLink != null && node != _root && _needSuffixLink != node)
             {
                 _needSuffixLink.SuffixLink = node;
+                Debug.Assert(_needSuffixLink.Label.EndsWith(node.Label), _needSuffixLink.Label+"->"+ node.Label);
+                if (_lastLeaf != null)
+                {
+                    _lastLeaf.SuffixLink = leaf;
+                    Debug.Assert(_lastLeaf.Label.EndsWith(leaf.Label), _lastLeaf.Label + "->" + leaf.Label);
+                }
+
             }
             _needSuffixLink = node;
+            _lastLeaf = leaf;
         }
 
         private bool WalkDown(Node<T> next) //Canonize
@@ -94,7 +104,7 @@ namespace SuffixTree
                 edge = NewNode(_source.Substring(position, sourceEnd - position + 1));
                 edge.WordNumber = _wordNumber;
                 edge.AddData(_value, _wordNumber); //leaf
-                AddSuffixLink(_activeNode);
+                AddSuffixLink(_activeNode, edge);
                 return _activeNode.Edges[c] = edge;
             }
 
@@ -125,17 +135,14 @@ namespace SuffixTree
                         nextEdge = NewNode(_source.Substring(position, _source.Length - position));
                         nextEdge.AddData(_value, _wordNumber); //leaf
                         edge.WordNumber = _wordNumber;
-                        AddSuffixLink(edge);
                         return edge.Edges[_source[position]] = nextEdge; //Adding leaf
                     }
-                    //start = position;
                     activeNode = edge;
                     edge = nextEdge;
                     continue;
                 }
                 // symbol mismatch. Need to split.
-                var leaf = Split(edge, edgePosition, activeNode, position, out var split);
-                AddSuffixLink(split);
+                var leaf = Split(edge, edgePosition, activeNode, position, out var _);
                 return leaf;
 
             } while (position <= sourceEnd);
@@ -189,14 +196,14 @@ namespace SuffixTree
                     {
                         // observation 1
                         _activeLength++;
-                        AddSuffixLink(_activeNode);
+                        AddSuffixLink(_activeNode, null);
                         //  observation 3
                         break;
                     }
 
-                    Split(next, _activeLength, _activeNode, _position, out var split);
+                    var leaf = Split(next, _activeLength, _activeNode, _position, out var split);
 
-                    AddSuffixLink(split);
+                    AddSuffixLink(split, leaf);
                     // rule 2
                 }
 

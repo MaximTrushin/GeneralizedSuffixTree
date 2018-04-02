@@ -24,18 +24,18 @@ namespace SuffixTree.Tests
         [TestCase(10000, 1000)]
         [TestCase(100000, 1000)]
         [TestCase(1000000, 1000)]
-        //[TestCase(10000000, 1000)]
+        [TestCase(10000000, 1000)]
         public void TestX(int wordCount, int lookupCount)
         {
             string[] randomText = NonsenseGeneration.GetRandomWords(_Vocabualry, wordCount).ToArray();
             string[] lookupWords = NonsenseGeneration.GetRandomWords(_Vocabualry, lookupCount).ToArray();
-            var trie = new SuffixTree<string>(3);
+            var trie = new GeneralizedSuffixTree<string>(3);
             Mesure(trie, randomText, lookupWords, out var buildUp, out var avgLookUp);
             Console.WriteLine("Build-up time: {0}", buildUp);
             Console.WriteLine("Avg. look-up time: {0}", avgLookUp);
         }
 
-        private void Mesure(SuffixTree<string> tree, IEnumerable<string> randomText, IEnumerable<string> lookupWords,
+        private void Mesure(GeneralizedSuffixTree<string> tree, IEnumerable<string> randomText, IEnumerable<string> lookupWords,
             out TimeSpan buildUp, out TimeSpan avgLookUp)
         {
             var stopwatch = new Stopwatch();

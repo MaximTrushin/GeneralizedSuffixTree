@@ -42,7 +42,7 @@
   <ItemGroup>
     <Compile Include="Node.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SuffixTree.cs" />
+    <Compile Include="GeneralizedSuffixTree.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

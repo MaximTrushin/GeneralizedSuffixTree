@@ -7,12 +7,12 @@ namespace SuffixTree.Tests
     [TestFixture]
     public class GenericSuffixTreeTests
     {
-        protected SuffixTree<int> Tree { get; private set; }
+        protected GeneralizedSuffixTree<int> Tree { get; private set; }
         [Test]
         public void MyTestSuffixTree()
         {
             const string s = "abracadabra";
-            var tree = new SuffixTree<int>(0);
+            var tree = new GeneralizedSuffixTree<int>(0);
             tree.AddWord(s, 1);
             var stree = tree.PrintTree().Replace("\0", "");
             Console.WriteLine(stree);
@@ -47,7 +47,7 @@ links:{
         [OneTimeSetUp]
         public virtual void Setup()
         {
-            Tree = new SuffixTree<int>(0);
+            Tree = new GeneralizedSuffixTree<int>(0);
             for (int i = 0; i < Words20.Length; i++)
             {
                 Tree.AddWord(Words20[i], i);
