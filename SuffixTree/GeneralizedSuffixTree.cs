@@ -226,7 +226,7 @@ namespace SuffixTree
         public IEnumerable<T> Retrieve(string word)
         {
             if (word.Length < _minSuffixLength) return Enumerable.Empty<T>();
-            var tmpNode = SearchNode(word);
+            var tmpNode = SearchNode(word, _root);
             return tmpNode == null
                 ? Enumerable.Empty<T>()
                 : tmpNode.GetData();
@@ -236,14 +236,15 @@ namespace SuffixTree
         /// Returns the tree node (if present) that corresponds to the given string.
         /// </summary>
         /// <param name="word">Given word</param>
+        /// <param name="root"></param>
         /// <returns></returns>
-        public Node<T> SearchNode(string word)
+        public static Node<T> SearchNode(string word, Node<T> root)
         {
               //Verifies if exists a path from the root to a NodeA<T> such that the concatenation
               //of all the labels on the path is a superstring of the given word.
               //If such a path is found, the last NodeA<T> on it is returned.
              
-            var currentEdge = _root;
+            var currentEdge = root;
 
             for (var i = 0; i < word.Length; ++i)
             {
