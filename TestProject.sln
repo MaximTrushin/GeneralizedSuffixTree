@@ -5,9 +5,9 @@ VisualStudioVersion = 15.0.27130.2024
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestProject", "TestProject\TestProject.csproj", "{327D68E6-9548-4C90-9A8B-089A43B31FF5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SuffixTree", "SuffixTree\SuffixTree.csproj", "{9CB81450-139C-4AF1-9D38-B14C94D8DF97}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeneralizedSuffixTree", "SuffixTree\GeneralizedSuffixTree.csproj", "{9CB81450-139C-4AF1-9D38-B14C94D8DF97}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SuffixTree.Tests", "SuffixTree.Tests\SuffixTree.Tests.csproj", "{29116241-634B-46B7-B3E6-92779852D9A8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeneralizedSuffixTree.Tests", "SuffixTree.Tests\GeneralizedSuffixTree.Tests.csproj", "{29116241-634B-46B7-B3E6-92779852D9A8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

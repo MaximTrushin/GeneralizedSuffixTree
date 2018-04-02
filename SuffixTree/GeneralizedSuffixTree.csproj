@@ -7,8 +7,8 @@
     <ProjectGuid>{9CB81450-139C-4AF1-9D38-B14C94D8DF97}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SuffixTree</RootNamespace>
-    <AssemblyName>SuffixTree</AssemblyName>
+    <RootNamespace>GeneralizedSuffixTree</RootNamespace>
+    <AssemblyName>GeneralizedSuffixTree</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

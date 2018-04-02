@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text;
 using NUnit.Framework;
 using SuffixTree.Tests.TestCaseGeneration;
 
@@ -55,7 +53,7 @@ namespace SuffixTree.Tests
             {
                 lookupCount++;
                 stopwatch.Start();
-                string[] found = tree.Retrieve(lookupWord).ToArray();
+                tree.Retrieve(lookupWord);
                 stopwatch.Stop();
             }
             avgLookUp = new TimeSpan(stopwatch.ElapsedTicks / lookupCount);

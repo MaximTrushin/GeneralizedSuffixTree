@@ -36,7 +36,6 @@ namespace SuffixTree
 
         public IEnumerable<T> GetData()
         {
-             
             IEnumerable<T> result = _data;
             if (_edges != null)
             {

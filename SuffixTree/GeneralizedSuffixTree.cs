@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 
 namespace SuffixTree
 {
@@ -31,6 +30,8 @@ namespace SuffixTree
             _root = new Node<T>(string.Empty,++_lastNodeIndex, _wordNumber);
             _activeNode = _root;
         }
+
+        public Node<T> Root => _root;
 
         public void AddWord(string word, T value)
         {
@@ -231,24 +232,24 @@ namespace SuffixTree
                 : tmpNode.GetData();
         }
 
-
-        /**
-         * Returns the tree NodeA<T> (if present) that corresponds to the given string.
-         */
+        /// <summary>
+        /// Returns the tree node (if present) that corresponds to the given string.
+        /// </summary>
+        /// <param name="word">Given word</param>
+        /// <returns></returns>
         public Node<T> SearchNode(string word)
         {
-            /*
-             * Verifies if exists a path from the root to a NodeA<T> such that the concatenation
-             * of all the labels on the path is a superstring of the given word.
-             * If such a path is found, the last NodeA<T> on it is returned.
-             */
-            var currentNode = _root;
+              //Verifies if exists a path from the root to a NodeA<T> such that the concatenation
+              //of all the labels on the path is a superstring of the given word.
+              //If such a path is found, the last NodeA<T> on it is returned.
+             
+            var currentEdge = _root;
 
             for (var i = 0; i < word.Length; ++i)
             {
                 var ch = word[i];
                 // follow the EdgeA<T> corresponding to this char
-                currentNode.Edges.TryGetValue(ch, out var currentEdge);
+                currentEdge.Edges.TryGetValue(ch, out currentEdge);
                 if (null == currentEdge)
                 {
                     // there is no EdgeA<T> starting with this char
@@ -267,8 +268,6 @@ namespace SuffixTree
                 {
                     return currentEdge;
                 }
-                // advance to next NodeA<T>
-                currentNode = currentEdge;
                 i += lenToMatch - 1;
             }
 
@@ -284,74 +283,6 @@ namespace SuffixTree
                 if (one != two) return false;
             }
             return true;
-        }
-
-        public string PrintTree()
-        {
-            var sb = new StringBuilder();
-            sb.Append("leaves:{");
-            PrintLeaves(_root, sb);
-            sb.AppendLine("}");
-            sb.Append("internal nodes:{");
-            PrintInternalNodes(_root, sb, _root);
-            sb.AppendLine("}");
-            sb.AppendLine("edges:{");
-            PrintEdges(_root, sb);
-            sb.AppendLine("links:{");
-            PrintSLinks(_root, sb);
-            sb.AppendLine("}");
-            return sb.ToString();
-        }
-
-        private void PrintLeaves(Node<T> x, StringBuilder sb)
-        {
-            if (x.Edges.Count == 0)
-            {
-                sb.Append(x.Number + ",");
-            }
-            else
-                foreach (var child in x.Edges.Values)
-                {
-                    PrintLeaves(child, sb);
-                }
-        }
-
-        static void PrintInternalNodes(Node<T> x, StringBuilder sb, Node<T> root = null)
-        {
-            if (x != root
-                && x.Edges.Count > 0)
-            {
-                sb.Append(x.Number + ",");
-            }
-
-            
-            foreach (var child in x.Edges.Values)
-            {
-                PrintInternalNodes(child, sb);
-            }
-
-        }
-
-        static void PrintEdges(Node<T> x, StringBuilder sb)
-        {
-            foreach (var child in x.Edges.Values)
-            {
-                sb.AppendLine(x.Number + "->"
-                        + child.Number + "=" + child.Label);
-                PrintEdges(child, sb);
-            }
-        }
-
-        static void PrintSLinks(Node<T> x, StringBuilder sb)
-        {
-            if (x.SuffixLink != null)
-            {
-                sb.AppendLine(x.Number + "->" + x.SuffixLink.Number);
-            }
-            foreach (var child in x.Edges.Values)
-            {
-                PrintSLinks(child, sb);
-            }
         }
 
     }
