@@ -19,17 +19,22 @@ namespace SuffixTree.Tests
             //Console.WriteLine(Tree.PrintTree());
 
             var expected = @"leaves:{1,5,7,2,3,6,8,}
-nodes:{4,}
+internal nodes:{4,9,10,11,}
 edges:{
 0->4=a
-4->1=bracadabra
+4->9=bra
+9->1=cadabra
 4->5=cadabra
 4->7=dabra
-0->2=bracadabra
-0->3=racadabra
+0->10=bra
+10->2=cadabra
+0->11=ra
+11->3=cadabra
 0->6=cadabra
 0->8=dabra
 links:{
+9->10
+10->11
 }
 ";
 
