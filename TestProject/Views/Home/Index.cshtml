@@ -3,10 +3,9 @@
     ViewBag.Title = "Search books by substring.";
 }
 
-
 <div class="wrapper group">
     <div class="topPanel">
-    <h3>Enter the substring to search the books:</h3>
+    <h3>Enter the substring (min length 3) to search the books:</h3>
     <input id="enterBox" class="enterBox" name="substring" type="text" data-bind="value: substring, valueUpdate: 'afterkeydown'" />
         <div id="textFragment" class="box fragmentDisplay">
         </div>
@@ -14,55 +13,88 @@
     </div>
 
     <div class="resultList">
-        <ul data-bind="foreach: booksLocations">
-            <li><a data-bind="text: $data.FileName + ' (' + $data.Location +')',
-                   click: $parent.getTextFragment
+        <table style="min-width: 400px">
+            <thead>
+            <tr><td style="min-width: 200px;font-weight: bold">Books:</td>
+                <td id="ssHeader" style="min-width: 200px;font-weight: bold"
+                    data-bind="text: 'Substring positions ' + (bookLocations()?'(total ' + bookLocations().length + '):':'')"
+                    /></tr>
+            </thead>
+            <tr>
+                <td style="vertical-align: top">
+                    <ul data-bind="foreach: books">
+                        <li><a data-bind="text: $data,
+                   click: $parent.getLocations
                    " href="#"></a></li>
-        </ul>
+                    </ul>
+                </td>
+                <td>
+                    <div data-bind="foreach: bookLocations">
+                        <a data-bind="text: ' (' + $data.Location +')',
+                   click: $parent.getTextFragment
+                   " href="#"></a>,
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
 </div>
 <script>
     var timeoutId;
     var viewModel = {
         substring: ko.observable(),
-        booksLocations: ko.observableArray(),
-        getTextFragment: GetTextFragment
+        books: ko.observableArray(),
+        bookLocations: ko.observableArray(),
+        getTextFragment: GetTextFragment,
+        getLocations: GetLocations
     };
-    viewModel.substring.subscribe(SendRequest);
     ko.applyBindings(viewModel);
+    viewModel.substring.subscribe(OnSubstringChange);
 
     function GetTextFragment(data) {
-        var i = data.Location;
-        var d = data.FileName;
         $.getJSON("/api/search/getTextFragment",
             data,
             function(data) {
                 var t = data;
-                //t = t.replace(viewModel.substring(), "<span class='highlight'>" + viewModel.substring() + "</span>");
-
                 var searchMask = viewModel.substring();
                 var regEx = new RegExp(searchMask, "ig");
                 var replaceMask = "<span class='highlight'>" + viewModel.substring() + "</span>";
                 $("#textFragment").html(t.replace(regEx, replaceMask));
             });
+    }
 
+    function GetLocations(data) {
+        $("#textFragment").html("");
+        $.getJSON("/api/search/getLocations",
+            { fileName: data, sub: viewModel.substring },
+            function (data) {
+                viewModel.bookLocations(data);
+            });
+    };
+
+    function SendGetBooksRequest(substring) {
+        $("#textFragment").html("");
+        window.clearTimeout(timeoutId);
+        timeoutId = setTimeout(GetBooks, 500, substring.toLowerCase());
+    };
+
+    function OnSubstringChange(substring) {
+        viewModel.books(null);
+        viewModel.bookLocations(null);
+        $("#textFragment").html("");
+        SendGetBooksRequest(substring);
 
     }
 
-    function SendRequest(substring) {
-        $("#textFragment").html("");
-        window.clearTimeout(timeoutId);
-        timeoutId = setTimeout(UpdateResults, 200, substring.toLowerCase());
-    };
-
-
-    function UpdateResults(substring) {
+    function GetBooks(substring) {
         if (substring.length === 0) return;
-        $.getJSON("/api/search?id=" + substring, function (data) {
-            viewModel.booksLocations(data);
+        var to = timeoutId;
+        $.getJSON("/api/search/getBooks", { sub: substring }, function (data) {
+            if (to === timeoutId) viewModel.books(data);
         }
         );
     }
+
     $("#enterBox").focus();
 </script>
 

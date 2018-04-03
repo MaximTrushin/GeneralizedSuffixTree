@@ -21,7 +21,7 @@ namespace TestProject.Core
             if (!fullPath.StartsWith(rootPath))
                 throw new Exception("Could not find rootPath in fullPath when calculating relative path.");
 
-            return "." + fullPath.Substring(rootPath.Length);
+            return fullPath.Substring(rootPath.Length);
         }
     }
 }

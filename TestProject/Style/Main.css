@@ -39,7 +39,7 @@ p {
 }
 .topPanel {
     position: fixed;
-    top: 0px;
+    top: 0;
     width: 100%;
     background: white;
     min-width: 400px;

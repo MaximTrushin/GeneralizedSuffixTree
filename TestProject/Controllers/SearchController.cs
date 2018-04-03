@@ -11,30 +11,33 @@ namespace TestProject.Controllers
 {
     public class SearchController : ApiController
     {
-
-        // GET api/Search/{id}
-        public IHttpActionResult Get([FromUri]string id)
+        [HttpGet]
+        [Route("api/search/getBooks")]
+        public IHttpActionResult GetBooks(string sub)
         {
             if (!(HttpContext.Current.Application[IndexingHelper.AppPropertyName] is IndexingHelper indexer))
                 return NotFound();
 
             var path = Path.Combine(HostingEnvironment.ApplicationPhysicalPath, ConfigurationManager.AppSettings["BooksForIndexingPath"]);
-            //var sb = new StringBuilder();
-            //foreach (var location in indexer.FindWordsWith(id))
-            //{
-            //    sb.AppendLine( $"{PathUtil.GetRelativePath(path, location.FileName)} ({location.Location})");
-            //}
-
-            //return Json(sb.ToString());
-            return Json(indexer.FindWordsWith(id)
-                .Select(e => new WordLocation(e.Location, PathUtil.GetRelativePath(path, e.FileName)))
-                .Skip(0).Take(50)
-                .OrderBy(l => l.FileName+l.Location.ToString().PadLeft(10, '0')));
+            return Json(indexer.FindWordsWith(sub)
+                .Select(e => PathUtil.GetRelativePath(path, e.FileName))
+                .Distinct()
+                .OrderBy(l => l)
+                );
         }
 
-        public IHttpActionResult Post([FromBody]string id)
+        [HttpGet]
+        [Route("api/search/getLocations")]
+        public IHttpActionResult GetLocations([FromUri]string sub, string fileName)
         {
-            return Ok("It works! Your id is " + id);
+            if (!(HttpContext.Current.Application[IndexingHelper.AppPropertyName] is IndexingHelper indexer))
+                return NotFound();
+
+            var path = Path.Combine(HostingEnvironment.ApplicationPhysicalPath, ConfigurationManager.AppSettings["BooksForIndexingPath"]);
+            return Json(indexer.FindWordsWith(sub)
+                .Select(e => new WordLocation(e.Location, PathUtil.GetRelativePath(path, e.FileName)))
+                .OrderBy(l => l.FileName + l.Location.ToString().PadLeft(10, '0'))
+                );
         }
 
 
@@ -42,10 +45,9 @@ namespace TestProject.Controllers
         [Route("api/search/getTextFragment")]
         public IHttpActionResult getTextFragment(string fileName, int location)
         {
-            // sample custom action method using attribute-based routing
             fileName = Path.Combine(HostingEnvironment.ApplicationPhysicalPath, 
                 ConfigurationManager.AppSettings["BooksForIndexingPath"],
-                fileName);
+                "." + fileName);
             var numberOfCharsToRead = 500;
             var start = Math.Max(0, location - numberOfCharsToRead/2);
             using (FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read))
@@ -60,34 +62,5 @@ namespace TestProject.Controllers
             }
         }
     }
-
-    //public class SampleController : ApiController
-    //{
-    //    // GET: api/Sample
-    //    public IEnumerable<string> Get()
-    //    {
-    //        return new string[] { "value1", "value2" };
-    //    }
-
-    //    // GET: api/Sample/5
-    //    public string Get(int id)
-    //    {
-    //        return "value";
-    //    }
-
-    //    // POST: api/Sample
-    //    public void Post([FromBody]string value)
-    //    {
-    //    }
-
-    //    // PUT: api/Sample/5
-    //    public void Put(int id, [FromBody]string value)
-    //    {
-    //    }
-
-    //    // DELETE: api/Sample/5
-    //    public void Delete(int id)
-    //    {
-    //    }
-    //}
+ 
 }
