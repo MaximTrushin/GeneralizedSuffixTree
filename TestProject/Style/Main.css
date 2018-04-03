@@ -47,5 +47,15 @@ p {
 .resultList {
     padding-top: 180px;
 }
+#sign {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    background: bisque;
+    border: #444444 1px solid;
+    font-size: 12px;
+    font-family: Arial, Helvetica, sans-serif;
+    
+}
 
 

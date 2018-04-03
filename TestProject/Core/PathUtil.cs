@@ -1,27 +1,28 @@
 ﻿using System;
+using System.IO;
 
 namespace TestProject.Core
 {
     public static class PathUtil
     {
-        public static string NormalizeFilepath(string filepath)
+
+        public static String MakeRelativePath(String fromPath, String toPath)
         {
-            string result = System.IO.Path.GetFullPath(filepath).ToLowerInvariant();
 
-            result = result.TrimEnd('\\');
+            Uri fromUri = new Uri(fromPath);
+            Uri toUri = new Uri(toPath);
 
-            return result;
-        }
+            if (fromUri.Scheme != toUri.Scheme) { return toPath; } // path can't be made relative.
 
-        public static string GetRelativePath(string rootPath, string fullPath)
-        {
-            rootPath = NormalizeFilepath(rootPath);
-            fullPath = NormalizeFilepath(fullPath);
+            Uri relativeUri = fromUri.MakeRelativeUri(toUri);
+            String relativePath = Uri.UnescapeDataString(relativeUri.ToString());
 
-            if (!fullPath.StartsWith(rootPath))
-                throw new Exception("Could not find rootPath in fullPath when calculating relative path.");
+            if (toUri.Scheme.Equals("file", StringComparison.InvariantCultureIgnoreCase))
+            {
+                relativePath = relativePath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            }
 
-            return fullPath.Substring(rootPath.Length);
+            return relativePath;
         }
     }
 }

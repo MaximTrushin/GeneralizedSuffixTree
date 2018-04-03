@@ -5,7 +5,7 @@
 
 <div class="wrapper group">
     <div class="topPanel">
-    <h3>Enter the substring (min length 3) to search the books:</h3>
+        <h3>Search books having word (min length 3):</h3>
     <input id="enterBox" class="enterBox" name="substring" type="text" data-bind="value: substring, valueUpdate: 'afterkeydown'" />
         <div id="textFragment" class="box fragmentDisplay">
         </div>
@@ -18,7 +18,7 @@
             <tr><td style="min-width: 200px;font-weight: bold">Books:</td>
                 <td id="ssHeader" style="min-width: 200px;font-weight: bold"
                     data-bind="text: 'Substring positions ' + (bookLocations()?'(total ' + bookLocations().length + '):':'')"
-                    /></tr>
+                /></tr>
             </thead>
             <tr>
                 <td style="vertical-align: top">
@@ -38,12 +38,15 @@
             </tr>
         </table>
     </div>
+    
+    <div id="sign">TestProject for position of <b>algorithm developer</b> by <b>Maxim Trushin</b>.</div>
 </div>
 <script>
-    var timeoutId;
+    
     var viewModel = {
         substring: ko.observable(),
         books: ko.observableArray(),
+        currentBook: ko.observable(),
         bookLocations: ko.observableArray(),
         getTextFragment: GetTextFragment,
         getLocations: GetLocations
@@ -51,8 +54,11 @@
     ko.applyBindings(viewModel);
     viewModel.substring.subscribe(OnSubstringChange);
 
+    var getTextFragmentRequest;
     function GetTextFragment(data) {
-        $.getJSON("/api/search/getTextFragment",
+        if (getTextFragmentRequest)
+            getTextFragmentRequest.abort();
+        getTextFragmentRequest = $.getJSON("/api/search/getTextFragment",
             data,
             function(data) {
                 var t = data;
@@ -63,15 +69,25 @@
             });
     }
 
+    var getLocationsRequest;
     function GetLocations(data) {
         $("#textFragment").html("");
-        $.getJSON("/api/search/getLocations",
-            { fileName: data, sub: viewModel.substring },
-            function (data) {
-                viewModel.bookLocations(data);
-            });
+        viewModel.currentBook(data);
+        if (getLocationsRequest) getLocationsRequest.abort();
+
+        getLocationsRequest = $.ajax(
+            "/api/search/getLocations",
+            {
+                data: { fileName: data, sub: viewModel.substring },
+                success: function (data) {
+                    viewModel.bookLocations(data);
+                }
+            }
+        );
+            
     };
 
+    var timeoutId;
     function SendGetBooksRequest(substring) {
         $("#textFragment").html("");
         window.clearTimeout(timeoutId);
@@ -86,15 +102,28 @@
 
     }
 
+    var getBooksRequest;
     function GetBooks(substring) {
         if (substring.length === 0) return;
         var to = timeoutId;
-        $.getJSON("/api/search/getBooks", { sub: substring }, function (data) {
-            if (to === timeoutId) viewModel.books(data);
-        }
+        if (getBooksRequest)
+            getBooksRequest.abort();
+        getBooksRequest = $.getJSON("/api/search/getBooks",
+            { sub: substring },
+            function (data) {
+                $("#textFragment").html("");
+                if (to === timeoutId) viewModel.books(data);
+            }
+        ).fail(
+            function() {
+                $("#textFragment").html("<span class='highlight'>" + "Indexing is still running. Retrying..." + "</span>");
+                timeoutId = setTimeout(GetBooks, 2000, substring.toLowerCase());
+            }
         );
     }
 
     $("#enterBox").focus();
+
+    viewModel.substring("the");
 </script>
 

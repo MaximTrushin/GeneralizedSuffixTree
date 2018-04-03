@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Configuration;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -15,12 +16,14 @@ namespace TestProject.Controllers
         [Route("api/search/getBooks")]
         public IHttpActionResult GetBooks(string sub)
         {
+            //return NotFound();
+
             if (!(HttpContext.Current.Application[IndexingHelper.AppPropertyName] is IndexingHelper indexer))
                 return NotFound();
 
             var path = Path.Combine(HostingEnvironment.ApplicationPhysicalPath, ConfigurationManager.AppSettings["BooksForIndexingPath"]);
             return Json(indexer.FindWordsWith(sub)
-                .Select(e => PathUtil.GetRelativePath(path, e.FileName))
+                .Select(e => PathUtil.MakeRelativePath(path, e.FileName))
                 .Distinct()
                 .OrderBy(l => l)
                 );
@@ -34,8 +37,8 @@ namespace TestProject.Controllers
                 return NotFound();
 
             var path = Path.Combine(HostingEnvironment.ApplicationPhysicalPath, ConfigurationManager.AppSettings["BooksForIndexingPath"]);
-            return Json(indexer.FindWordsWith(sub)
-                .Select(e => new WordLocation(e.Location, PathUtil.GetRelativePath(path, e.FileName)))
+            return Json(indexer.FindWordsWith(sub).Where(e => e.FileName.EndsWith(fileName, true, CultureInfo.InvariantCulture))
+                .Select(e => new WordLocation(e.Location, PathUtil.MakeRelativePath(path, e.FileName)))
                 .OrderBy(l => l.FileName + l.Location.ToString().PadLeft(10, '0'))
                 );
         }
@@ -47,7 +50,7 @@ namespace TestProject.Controllers
         {
             fileName = Path.Combine(HostingEnvironment.ApplicationPhysicalPath, 
                 ConfigurationManager.AppSettings["BooksForIndexingPath"],
-                "." + fileName);
+                ".\\" + fileName);
             var numberOfCharsToRead = 500;
             var start = Math.Max(0, location - numberOfCharsToRead/2);
             using (FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read))

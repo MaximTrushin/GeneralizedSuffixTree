@@ -80,7 +80,6 @@ namespace SuffixTree
             if (start == source.Length)
             { //Create terminal edge
                 return null;
-                //return new Node<T>(_terminal, ++_lastNodeIndex, _wordNumber);
             }
             return new Node<T>(source.Substring(start, end - start + 1), ++_lastNodeIndex, _wordNumber);
         }
