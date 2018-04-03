@@ -1,0 +1,51 @@
+﻿.group:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+body {
+    font: 15px/20px sans-serif;
+    color: #444;
+}
+
+p {
+    margin-bottom: 30px;
+}
+
+.wrapper {
+    padding: 1%;
+}
+.enterBox {
+    position: absolute;
+}
+
+
+.box {
+    background: #eee;
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+.fragmentDisplay {
+    padding-top: 20px;
+    height: 100px;
+    overflow-y: scroll;
+}
+
+.highlight {
+    color: red;
+    font-weight: bold;
+}
+.topPanel {
+    position: fixed;
+    top: 0px;
+    width: 100%;
+    background: white;
+    min-width: 400px;
+}
+.resultList {
+    padding-top: 180px;
+}
+
+

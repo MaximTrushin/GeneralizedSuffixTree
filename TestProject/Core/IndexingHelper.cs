@@ -30,7 +30,7 @@ namespace TestProject.Core
                 _suffixTree = new GeneralizedSuffixTree<WordLocation>(3);
                 foreach (var word in GetWordsFromFiles(_path))
                 {
-                    _suffixTree.AddWord(word.Item2, word.Item1);
+                    _suffixTree.AddWord(word.Item2.ToLower(), word.Item1);
                 }
                 _app[AppPropertyName] = this;
                 _ready = true;
@@ -40,7 +40,7 @@ namespace TestProject.Core
 
         public IEnumerable<WordLocation> FindWordsWith(string id)
         {
-            if (!_ready) yield break;
+            if (!_ready || id == null) yield break;
             foreach (var location in _suffixTree.Retrieve(id))
             {
                 yield return location;

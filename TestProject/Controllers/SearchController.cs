@@ -2,7 +2,6 @@
 using System.Configuration;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Web;
 using System.Web.Hosting;
 using System.Web.Http;
@@ -17,9 +16,9 @@ namespace TestProject.Controllers
         public IHttpActionResult Get([FromUri]string id)
         {
             if (!(HttpContext.Current.Application[IndexingHelper.AppPropertyName] is IndexingHelper indexer))
-                return Ok("Indexing is not finished!");
+                return NotFound();
 
-            var path = System.IO.Path.Combine(HostingEnvironment.ApplicationPhysicalPath, ConfigurationManager.AppSettings["BooksForIndexingPath"]);
+            var path = Path.Combine(HostingEnvironment.ApplicationPhysicalPath, ConfigurationManager.AppSettings["BooksForIndexingPath"]);
             //var sb = new StringBuilder();
             //foreach (var location in indexer.FindWordsWith(id))
             //{
@@ -27,9 +26,11 @@ namespace TestProject.Controllers
             //}
 
             //return Json(sb.ToString());
-            return Json(indexer.FindWordsWith(id).Select(e => new WordLocation(e.Location, PathUtil.GetRelativePath(path, e.FileName))));
+            return Json(indexer.FindWordsWith(id)
+                .Select(e => new WordLocation(e.Location, PathUtil.GetRelativePath(path, e.FileName)))
+                .Skip(0).Take(50)
+                .OrderBy(l => l.FileName+l.Location.ToString().PadLeft(10, '0')));
         }
-
 
         public IHttpActionResult Post([FromBody]string id)
         {
@@ -38,12 +39,25 @@ namespace TestProject.Controllers
 
 
         [HttpGet]
-        [Route("api/Sample/Custom")]
-        public IHttpActionResult Custom()
+        [Route("api/search/getTextFragment")]
+        public IHttpActionResult getTextFragment(string fileName, int location)
         {
             // sample custom action method using attribute-based routing
-            // TODO: my code here
-            throw new NotImplementedException();
+            fileName = Path.Combine(HostingEnvironment.ApplicationPhysicalPath, 
+                ConfigurationManager.AppSettings["BooksForIndexingPath"],
+                fileName);
+            var numberOfCharsToRead = 500;
+            var start = Math.Max(0, location - numberOfCharsToRead/2);
+            using (FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read))
+            {
+                fs.Seek(start, SeekOrigin.Begin);
+
+                byte[] b = new byte[numberOfCharsToRead];
+                fs.Read(b, 0, numberOfCharsToRead);
+
+                string s = System.Text.Encoding.UTF8.GetString(b);
+                return Ok(s);
+            }
         }
     }
 

@@ -7,7 +7,9 @@ using System.Web;
 using System.Web.Hosting;
 using System.Web.Http;
 using System.Web.Mvc;
+using System.Web.Optimization;
 using System.Web.Routing;
+using CodeRepository.Web;
 using TestProject.Core;
 
 namespace TestProject
@@ -21,6 +23,7 @@ namespace TestProject
 
             AreaRegistration.RegisterAllAreas();
             RouteConfig.RegisterRoutes(RouteTable.Routes);
+            BundleConfig.RegisterBundles(BundleTable.Bundles);
 
 
             var path = System.IO.Path.Combine(HostingEnvironment.ApplicationPhysicalPath, ConfigurationManager.AppSettings["BooksForIndexingPath"]);
