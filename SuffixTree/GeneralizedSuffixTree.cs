@@ -42,27 +42,34 @@ namespace SuffixTree
             _activeEdgePosition = -1;
             _position = -1;
             _value = value;
+            _lastLeaf = null;
 
             if (word.Length > MaxWordLength) word = word.Substring(0, MaxWordLength);
             _source = word;
-            foreach (var c in _source) AddChar(c); AddChar('\0');
+            foreach (var c in _source) AddChar(c);
+            AddChar('\0');
         }
 
         private void AddSuffixLink(Node<T> node, Node<T> leaf)
         {
-            if (_needSuffixLink != null && node != _root && _needSuffixLink != node)
+            if (_needSuffixLink != null && node != _root && _needSuffixLink != node && node != null)
             {
                 _needSuffixLink.SuffixLink = node;
                 Debug.Assert(_needSuffixLink.Label.EndsWith(node.Label), _needSuffixLink.Label+"->"+ node.Label);
-                if (_lastLeaf != null)
-                {
-                    _lastLeaf.SuffixLink = leaf;
-                    Debug.Assert(_lastLeaf.Label.EndsWith(leaf.Label), _lastLeaf.Label + "->" + leaf.Label);
-                }
-
             }
+
+            if (_lastLeaf != null && leaf != null)
+            {
+                _lastLeaf.SuffixLink = leaf;
+                //_lastLeafStart.SuffixLink = leafStart;
+                Debug.Assert(_lastLeaf.Label.EndsWith(leaf.Label), _lastLeaf.Label + "->" + leaf.Label);
+            }
+
             _needSuffixLink = node;
-            _lastLeaf = leaf;
+            if (leaf != null)
+            {
+                _lastLeaf = leaf;
+            }
         }
 
         private bool WalkDown(Node<T> next) //Canonize
@@ -125,6 +132,7 @@ namespace SuffixTree
                     //Existing edge is equal to substring we want to create edge for.
                     edge.AddData(_value, _wordNumber); //leaf
                     edge.WordNumber = _wordNumber;
+                    AddSuffixLink(null, edge);
                     return edge;
                 }
                 if (edgePosition > edgeEnd)
@@ -135,6 +143,7 @@ namespace SuffixTree
                         nextEdge = NewNode(_source.Substring(position, _source.Length - position));
                         nextEdge.AddData(_value, _wordNumber); //leaf
                         edge.WordNumber = _wordNumber;
+                        AddSuffixLink(null, nextEdge);
                         return edge.Edges[_source[position]] = nextEdge; //Adding leaf
                     }
                     activeNode = edge;
