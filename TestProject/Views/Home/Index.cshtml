@@ -46,7 +46,6 @@
     var viewModel = {
         substring: ko.observable(),
         books: ko.observableArray(),
-        currentBook: ko.observable(),
         bookLocations: ko.observableArray(),
         getTextFragment: GetTextFragment,
         getLocations: GetLocations
@@ -72,7 +71,7 @@
     var getLocationsRequest;
     function GetLocations(data) {
         $("#textFragment").html("");
-        viewModel.currentBook(data);
+        viewModel.bookLocations(null);
         if (getLocationsRequest) getLocationsRequest.abort();
 
         getLocationsRequest = $.ajax(
