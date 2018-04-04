@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text;
+using NUnit.Framework;
 using SuffixTree;
 
 namespace GeneralizedSuffixTree.Tests
@@ -72,5 +73,76 @@ namespace GeneralizedSuffixTree.Tests
                 PrintSLinks(child, sb);
             }
         }
+
+
+        public static void CountNodes<T>(this GeneralizedSuffixTree<T> tree, out int leaves, out int internalNodes,
+            out int edges, out int sLinks)
+        {
+            leaves = CountLeaves(tree.Root);
+            internalNodes = CountInternalNodes(tree.Root, tree.Root);
+            edges = CountEdges(tree.Root);
+            sLinks = CountSLinks(tree.Root);
+        }
+
+        private static int CountLeaves<T>(Node<T> x)
+        {
+            if (x.Edges.Count == 0)
+            {
+                return 1;
+            }
+
+            var result = 0;
+            foreach (var child in x.Edges.Values)
+            {
+                result += CountLeaves(child);
+            }
+
+            return result;
+        }
+
+        private static int CountInternalNodes<T>(Node<T> x, Node<T> root = null)
+        {
+            var result = 0;
+            if (x != root
+                && x.Edges.Count > 0)
+            {
+                result++;
+            }
+            
+            foreach (var child in x.Edges.Values)
+            {
+                result += CountInternalNodes(child);
+            }
+
+            return result;
+        }
+
+        private static int CountEdges<T>(Node<T> x)
+        {
+            var result = 0;
+            foreach (var child in x.Edges.Values)
+            {
+                result++;
+                result += CountEdges(child);
+            }
+
+            return result;
+        }
+
+        private static int CountSLinks<T>(Node<T> x)
+        {
+            var result = 0;
+            if (x.SuffixLink != null)
+            {
+                result++;
+            }
+            foreach (var child in x.Edges.Values)
+            {
+                result += CountSLinks(child);
+            }
+
+            return result;
+        }
+
     }
 }

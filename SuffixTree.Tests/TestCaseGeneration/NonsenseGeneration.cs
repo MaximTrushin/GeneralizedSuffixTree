@@ -9,7 +9,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace SuffixTree.Tests.TestCaseGeneration
+namespace GeneralizedSuffixTree.Tests.TestCaseGeneration
 {
     public static class NonsenseGeneration
     {
