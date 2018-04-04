@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace SuffixTree
 {
@@ -39,13 +40,13 @@ namespace SuffixTree
             IEnumerable<T> result = _data;
             if (_edges != null)
             {
-                result = _edges.Values.SelectMany((t) => t.GetData()).Distinct();
+                result = _edges.Values.SelectMany((t) => t.GetData());
                 if (_data != null)
-                    result = _data.Concat(result).Distinct();
+                    return _data.Concat(result).Distinct();
+                return result.Distinct();
             }
 
-            foreach (var d in result)
-                yield return d;
+            return _data.Distinct();
         }
 
         public Node<T> GetEdge(char activeEdgeChar, int wordNumber, out Node<T> found)
