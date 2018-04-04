@@ -14,13 +14,11 @@ namespace SuffixTree
 
         public string Label { get; internal set; }
         public int Number { get; }
-        public int WordNumber { get; internal set; }
 
-        public Node(string label, int number, int wordNumber)
+        public Node(string label, int number)
         {
             Label = label;
             Number = number;
-            WordNumber = wordNumber;
         }
 
         private int _prevWordNumber = -1;
@@ -37,24 +35,18 @@ namespace SuffixTree
 
         public IEnumerable<T> GetData()
         {
-            IEnumerable<T> result = _data;
-            if (_edges != null)
-            {
-                result = _edges.Values.SelectMany((t) => t.GetData());
-                if (_data != null)
-                    return _data.Concat(result).Distinct();
-                return result.Distinct();
-            }
+            if (_edges == null) return _data.Distinct();
+            var result = _edges.Values.SelectMany(t => t.GetData());
+            if (_data == null) return result.Distinct();
+            return _data.Concat(result).Distinct();
 
-            return _data.Distinct();
         }
 
-        public Node<T> GetEdge(char activeEdgeChar, int wordNumber, out Node<T> found)
+        public Node<T> GetEdge(char activeEdgeChar, int wordNumber)
         {
-            found = null;
             if (_edges == null) return null;
-            _edges.TryGetValue(activeEdgeChar, out found);
-            if (found?.WordNumber != wordNumber) return null;
+            _edges.TryGetValue(activeEdgeChar, out var found);
+            //if (found?.WordNumber != wordNumber) return null;
             return found;
         }
 
