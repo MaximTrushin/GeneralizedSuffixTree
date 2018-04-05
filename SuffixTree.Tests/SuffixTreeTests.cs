@@ -28,7 +28,7 @@ namespace GeneralizedSuffixTree.Tests
                                             "overcontraction",
                                             "s",
                                             "wershest",
-                                            "wersher",
+                                            "wersher",//5
                                             "inblown",
                                             "inblow",
                                             "inbirth",

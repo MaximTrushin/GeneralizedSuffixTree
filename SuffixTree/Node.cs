@@ -21,6 +21,15 @@ namespace SuffixTree
             Number = number;
         }
 
+        public Node<T> AddEdge(char key, Node<T> node)
+        {
+            node.Parent = this;
+            Edges[key] = node;
+            return this;
+        }
+
+        public Node<T> Parent { get; set; }
+
         private int _prevWordNumber = -1;
         public void AddData(T value, int wordNumber)
         {
@@ -42,11 +51,10 @@ namespace SuffixTree
 
         }
 
-        public Node<T> GetEdge(char activeEdgeChar, int wordNumber)
+        public Node<T> GetEdge(char activeEdgeChar)
         {
             if (_edges == null) return null;
             _edges.TryGetValue(activeEdgeChar, out var found);
-            //if (found?.WordNumber != wordNumber) return null;
             return found;
         }
 
