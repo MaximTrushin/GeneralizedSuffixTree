@@ -13,17 +13,17 @@ namespace SuffixTree
         private readonly Node<T> _root;
         private int _position = -1;
         private int _lastNodeIndex = -1;
-        private Node<T> _needSuffixLink;
+
 
         private Node<T> _activeNode;
-        private int _activeLength;
         //private int _activeEdgePosition;
         private string _source;
         private T _value;
-        private Node<T> _lastLeaf;
         private Node<T>[] _nodes = new Node<T>[MaxWordLength];
         private int _lastPositionStored;
         private int _wordNumber = -1;
+        private Node<T> _lastSuffix;
+        private int _lastSuffixPosition;
 
         public GeneralizedSuffixTree(int minSuffixLength)
         {
@@ -37,49 +37,17 @@ namespace SuffixTree
         public void AddWord(string word, T value)
         {
             _activeNode = _root;
-            _activeLength = 0;
             _position = -1;
             _value = value;
-            _lastLeaf = null;
             _lastPositionStored = -1;
 
             if (word.Length > MaxWordLength) word = word.Substring(0, MaxWordLength);
             _source = word;
             _nodes[word.Length - 1] = null;
             _wordNumber++;
+            _lastSuffixPosition = -1;
             foreach (var c in _source) AddChar(c);
             //AddChar('\0');
-        }
-
-        private void AddSuffixLink(Node<T> node, Node<T> leaf)
-        {
-            if (_needSuffixLink != null && node != _root && _needSuffixLink != node && node != null)
-            {
-                _needSuffixLink.SuffixLink = node;
-                Debug.Assert(_needSuffixLink.Label.EndsWith(node.Label), _needSuffixLink.Label+"->"+ node.Label);
-            }
-
-            if (_lastLeaf != null && leaf != null)
-            {
-                _lastLeaf.SuffixLink = leaf;
-                //_lastLeafStart.SuffixLink = leafStart;
-                Debug.Assert(_lastLeaf.Label.EndsWith(leaf.Label), _lastLeaf.Label + "->" + leaf.Label);
-            }
-
-            _needSuffixLink = node;
-            if (leaf != null)
-            {
-                _lastLeaf = leaf;
-            }
-        }
-
-        private bool WalkDown(Node<T> next) //Canonize
-        {
-            if (_activeLength < next.Label.Length) return false;
-            //_activeEdgePosition = _activeEdgePosition + next.Label.Length;
-            _activeLength = _activeLength - next.Label.Length;
-            _activeNode = next;
-            return true;
         }
 
         private Node<T> NewNode(int start, int end, string source)
@@ -97,35 +65,112 @@ namespace SuffixTree
         }
 
         /// <summary>
-        /// Adds edge on top of existing nodes created for previous words.
+        /// 
         /// </summary>
-        /// <param name="edge"></param>
-        public Node<T> AddEdge(Node<T> edge)
+        /// <param name="node"></param>
+        /// <param name="leafStart">Position where leaf starts</param>
+        /// <param name="leafEnd"></param>
+        private void SaveLeaf(Node<T> node, int leafStart, int leafEnd)
         {
-            //if (_activeEdgePosition == _source.Length) return null;
-            var position = _position;
-            var sourceEnd = _source.Length - 1;
-            var c = _source[_position];
-            if (edge == null)
+            if (_nodes[leafEnd] != null && _nodes[leafEnd] != node)
             {
-                edge = NewNode(_source.Substring(position, sourceEnd - position + 1));
+                Debug.Assert(_nodes[leafEnd].SuffixLink != node);
+                _nodes[leafEnd].SuffixLink = node;
+            }
+            
+            _nodes[leafEnd] = node;
+            //Debug.Assert(node.Label.EndsWith(_source[leafStart].ToString()));
 
-                edge.AddData(_value, _wordNumber); //leaf
-                SaveLeaf(edge, position, sourceEnd);
-                //AddSuffixLink(_activeNode, edge);
-                return _activeNode.Edges[c] = edge;
+            if (node.SuffixLink != null)
+            {
+                _lastSuffix = node.SuffixLink;
+                _lastSuffixPosition = leafStart;
+            }
+        }
+
+        private void SaveNode(Node<T> node, int edgeEnd)
+        {
+            if (_nodes[edgeEnd] != null && _nodes[edgeEnd] != node)
+            {
+                _nodes[edgeEnd].SuffixLink = node;
+                //Debug.Assert(_nodes[position].SuffixLink != node);
+            }
+            _nodes[edgeEnd] = node;
+            Debug.Assert(node.Label.EndsWith(_source[edgeEnd].ToString()));
+            if (edgeEnd > _lastPositionStored) _lastPositionStored = edgeEnd;
+
+            if (node.SuffixLink != null)
+            {
+                _lastSuffix = node.SuffixLink;
+                _lastSuffixPosition = edgeEnd;
+            }
+        }
+
+        private Node<T> Split(Node<T> edge, int edgePosition, Node<T> activeNode, int position, out Node<T> split)
+        {
+            split = NewNode(0, edgePosition - 1, edge.Label);
+            activeNode.AddEdge(edge.Label[0], split);
+            edge.Label = edge.Label.Substring(edgePosition);
+            split.AddEdge(edge.Label[0],edge);
+
+            var leaf = position == _source.Length ? null:NewNode(_source.Substring(position, _source.Length - position));
+            if (leaf != null)
+            {
+                leaf.AddData(_value, _wordNumber);
+                split.AddEdge(_source[position], leaf);
+            }
+            else split.AddData(_value, _wordNumber);
+            return leaf;
+        }
+
+        private void AddChar(char c)
+        {
+            ++_position;
+            Node<T> edge = null;
+            var position = Math.Max(_position, _lastSuffixPosition + 1);
+            //if (position != position && _lastSuffixPosition < _source.Length - 1) position--;
+            if (_lastSuffixPosition == _source.Length - 1)
+            {
+                //Walk through all leafs and mark
+                while (_lastSuffix != null)
+                {
+                    _lastSuffix.AddData(_value, _wordNumber);
+                    _lastSuffix = _lastSuffix.SuffixLink;
+                }
+
+                return;
             }
 
-            var activeNode = _activeNode;
-            do
+
+            var sourceEnd = _source.Length - 1;
+            if (position <= sourceEnd)
             {
+                edge = _activeNode.GetEdge(_source[position]);
+                
+                if (edge == null)
+                {
+                    edge = NewNode(_source.Substring(position, sourceEnd - position + 1));
+                    edge.AddData(_value, _wordNumber); //leaf
+                    SaveLeaf(edge, position, sourceEnd);
+                    _activeNode.AddEdge(c, edge);
+                    return;
+                }
+                _lastSuffix = null;
+            }
+            var activeNode = _activeNode;
+            while (position <= sourceEnd){
                 var edgePosition = 0;
+
+                Debug.Assert(edge != null, nameof(edge) + " != null");
                 var label = edge.Label;
-                var edgeEnd = label.Length-1;
+                var edgeEnd = label.Length - 1;
 
                 while (position <= sourceEnd && edgePosition <= edgeEnd && _source[position] == label[edgePosition])
                 {
-                    if (position > _lastPositionStored) _nodes[position] = null;
+                    if (position > _lastPositionStored && position < sourceEnd) {
+                        _nodes[position] = null; 
+                        _lastPositionStored = position;
+                    }
                     position++;
                     edgePosition++;
                 }
@@ -133,9 +178,9 @@ namespace SuffixTree
                 {
                     //Existing edge is equal to substring we want to create edge for.
                     edge.AddData(_value, _wordNumber); //leaf
-                    //AddSuffixLink(null, edge);
                     SaveNode(edge, position - 1);
-                    return edge;
+                    _activeNode = _lastSuffix ?? _root;
+                    return;
                 }
                 if (edgePosition > edgeEnd)
                 { //Existing edge is substring.
@@ -147,8 +192,8 @@ namespace SuffixTree
                         nextEdge = NewNode(_source.Substring(position, _source.Length - position));
                         nextEdge.AddData(_value, _wordNumber); //leaf
                         SaveLeaf(nextEdge, position, sourceEnd);
-
-                        return edge.Edges[_source[position]] = nextEdge; //Adding leaf
+                        edge.AddEdge(_source[position], nextEdge); //Adding leaf
+                        return;
                     }
                     activeNode = edge;
                     edge = nextEdge;
@@ -156,99 +201,28 @@ namespace SuffixTree
                 }
                 // symbol mismatch. Need to split.
                 var leaf = Split(edge, edgePosition, activeNode, position, out var split);
-                SaveNode(split, position);
+                SaveNode(split, position - 1);
+
                 if (leaf != null)
                 {
-                    if (_nodes[sourceEnd] != null) _nodes[sourceEnd].SuffixLink = leaf;
+                    if (_nodes[sourceEnd] != null && _nodes[sourceEnd] != leaf)
+                    {
+                        _nodes[sourceEnd].SuffixLink = leaf;
+                        //Debug.Assert(_nodes[sourceEnd].SuffixLink != leaf);
+                    }
                     _nodes[sourceEnd] = leaf;
+                    leaf.AddData(_value, _wordNumber);
                 }
-                return leaf;
+                _activeNode = _lastSuffix ?? _root; 
+                //_activeNode = _lastSuffix;
 
-            } while (position <= sourceEnd);
-            return edge;
-        }
+                return;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="edge"></param>
-        /// <param name="position">Position where leaf starts</param>
-        /// <param name="sourceEnd"></param>
-        private void SaveLeaf(Node<T> edge, int position, int sourceEnd)
-        {
-            if (_nodes[sourceEnd] != null) _nodes[sourceEnd].SuffixLink = edge;
-            _nodes[sourceEnd] = edge;
-            if (position > _lastPositionStored)
-            {
-                _nodes[position] = null;
-                _lastPositionStored = position;
-            }
-        }
-
-        private void SaveNode(Node<T> node, int position)
-        {
-            if (_nodes[position] != null) _nodes[position].SuffixLink = node;
-            _nodes[position] = node;
-            if (position > _lastPositionStored) _lastPositionStored = position;
-        }
-
-        private Node<T> Split(Node<T> edge, int edgePosition, Node<T> activeNode, int position, out Node<T> split)
-        {
-            split = NewNode(0, edgePosition - 1, edge.Label);
-            activeNode.Edges[edge.Label[0]] = split;
-            edge.Label = edge.Label.Substring(edgePosition);
-            split.Edges[edge.Label[0]] = edge;
-
-            var leaf = position == _source.Length ? null:NewNode(_source.Substring(position, _source.Length - position));
-            if (leaf != null)
-            {
-                leaf.AddData(_value, _wordNumber);
-                split.Edges[_source[position]] = leaf;
-            }
-            else split.AddData(_value, _wordNumber);
-            return leaf;
-        }
-
-        private void AddChar(char c)
-        {
-            ++_position;
-            _needSuffixLink = null;
-            
-            //if (_activeLength == 0)
-            //{
-            //    _activeEdgePosition = _position;
-            //}
-
-
-            var next = _position < _source.Length?
-                _activeNode.GetEdge(_source[_position], _wordNumber):
-                null;
-            if (next == next)
-            {
-                AddEdge(next);
-                // rule 2
-            }
-            else
-            {
-                //if (WalkDown(next)) continue; // observation 2
-                //if (next.Label[_activeLength] == c)
-                //{
-                //    // observation 1
-                //    _activeLength++;
-                //    AddSuffixLink(_activeNode, null);
-                //    //  observation 3
-                //    break;
-                //}
-
-                //var leaf = Split(next, _activeLength, _activeNode, _position, out var split);
-
-                //AddSuffixLink(split, leaf);
-                // rule 2
             }
 
-
-            
+            _activeNode = _lastSuffix ?? _root;
         }
+
 
 
         public IEnumerable<T> Retrieve(string word)
