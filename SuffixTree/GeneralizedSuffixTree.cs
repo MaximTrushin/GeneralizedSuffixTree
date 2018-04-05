@@ -152,7 +152,8 @@ namespace SuffixTree
                     edge = NewNode(_source.Substring(position, sourceEnd - position + 1));
                     edge.AddData(_value, _wordNumber); //leaf
                     SaveLeaf(edge, position, sourceEnd);
-                    _activeNode.AddEdge(c, edge);
+                    _activeNode.AddEdge(_source[position], edge);
+                    _activeNode = _root;
                     return;
                 }
                 _lastSuffix = null;
@@ -190,8 +191,9 @@ namespace SuffixTree
                     if (nextEdge == null)
                     {
                         nextEdge = NewNode(_source.Substring(position, _source.Length - position));
-                        nextEdge.AddData(_value, _wordNumber); //leaf
-                        SaveLeaf(nextEdge, position, sourceEnd);
+                        nextEdge.AddData(_value, _wordNumber);
+                        _activeNode = _lastSuffix ?? _root;
+                        SaveLeaf(nextEdge, position, sourceEnd);//leaf
                         edge.AddEdge(_source[position], nextEdge); //Adding leaf
                         return;
                     }
@@ -202,7 +204,6 @@ namespace SuffixTree
                 // symbol mismatch. Need to split.
                 var leaf = Split(edge, edgePosition, activeNode, position, out var split);
                 SaveNode(split, position - 1);
-
                 if (leaf != null)
                 {
                     if (_nodes[sourceEnd] != null && _nodes[sourceEnd] != leaf)
@@ -214,12 +215,8 @@ namespace SuffixTree
                     leaf.AddData(_value, _wordNumber);
                 }
                 _activeNode = _lastSuffix ?? _root; 
-                //_activeNode = _lastSuffix;
-
                 return;
-
             }
-
             _activeNode = _lastSuffix ?? _root;
         }
 

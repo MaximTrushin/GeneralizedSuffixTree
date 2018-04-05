@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 
@@ -25,6 +26,7 @@ namespace SuffixTree
         {
             node.Parent = this;
             Edges[key] = node;
+            Debug.Assert(node.Label.StartsWith(key.ToString()));
             return this;
         }
 
