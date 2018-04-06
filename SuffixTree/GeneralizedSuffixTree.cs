@@ -14,12 +14,10 @@ namespace SuffixTree
         private int _position = -1;
         private int _lastNodeIndex = -1;
 
-
         private Node<T> _activeNode;
-        //private int _activeEdgePosition;
         private string _source;
         private T _value;
-        private Node<T>[] _nodes = new Node<T>[MaxWordLength];
+        private readonly Node<T>[] _nodes = new Node<T>[MaxWordLength];
         private int _lastPositionStored;
         private int _wordNumber = -1;
         private Node<T> _lastSuffix;
@@ -46,8 +44,8 @@ namespace SuffixTree
             _nodes[word.Length - 1] = null;
             _wordNumber++;
             _lastSuffixPosition = -1;
-            foreach (var c in _source) AddChar(c);
-            //AddChar('\0');
+            var length = _source.Length;
+            for (int i = 0; i < length; i++) AddChar();
         }
 
         private Node<T> NewNode(int start, int end, string source)
@@ -74,12 +72,9 @@ namespace SuffixTree
         {
             if (_nodes[leafEnd] != null && _nodes[leafEnd] != node)
             {
-                //Debug.Assert(_nodes[leafEnd].SuffixLink != node, "_nodes[leafEnd].SuffixLink != node");
                 _nodes[leafEnd].SuffixLink = node;
             }
-            
             _nodes[leafEnd] = node;
-            //Debug.Assert(node.Label.EndsWith(_source[leafStart].ToString()));
 
             if (node.SuffixLink != null)
             {
@@ -92,7 +87,6 @@ namespace SuffixTree
         {
             if (_nodes[edgeEnd] != null && _nodes[edgeEnd] != node)
             {
-                //Debug.Assert(_nodes[edgeEnd].SuffixLink != node, "_nodes[edgeEnd].SuffixLink = node");
                 _nodes[edgeEnd].SuffixLink = node;
                 
             }
@@ -124,12 +118,11 @@ namespace SuffixTree
             return leaf;
         }
 
-        private void AddChar(char c)
+        private void AddChar()
         {
             ++_position;
             Node<T> edge = null;
             var position = Math.Max(_position, _lastSuffixPosition + 1);
-            //if (position != position && _lastSuffixPosition < _source.Length - 1) position--;
             if (_lastSuffixPosition == _source.Length - 1)
             {
                 //Walk through all leafs and mark
@@ -210,9 +203,7 @@ namespace SuffixTree
                 {
                     if (_nodes[sourceEnd] != null && _nodes[sourceEnd] != leaf)
                     {
-                        //Debug.Assert(_nodes[sourceEnd].SuffixLink != leaf, "_nodes[sourceEnd].SuffixLink == leaf");
                         _nodes[sourceEnd].SuffixLink = leaf;
-                        //Debug.Assert(_nodes[sourceEnd].SuffixLink != leaf);
                     }
                     _nodes[sourceEnd] = leaf;
                     leaf.AddData(_value, _wordNumber);
