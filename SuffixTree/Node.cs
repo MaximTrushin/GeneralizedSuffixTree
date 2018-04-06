@@ -14,28 +14,28 @@ namespace SuffixTree
             set
             {
 #if DEBUG
-                string s = "";
+                string suffixLabel = "";
                 var sl = value;
 
                 do
                 {
-                    s = sl.Label + s;
+                    suffixLabel = sl.Label + suffixLabel;
                     sl = sl.Parent;
                 } while (sl != null);
 
-                string s1 = "";
+                string thisLabel = "";
                 sl = this;
 
                 do
                 {
-                    s1 = sl.Label + s1;
+                    thisLabel = sl.Label + thisLabel;
                     sl = sl.Parent;
                 } while (sl != null);
 
 
 
-                Debug.Assert(s.Length + 1 == s1.Length, "s.Length + 1 == Label.Length");
-                Debug.Assert(s1.EndsWith(s), "Label.EndsWith(s)");
+                Debug.Assert(suffixLabel.Length + 1 == thisLabel.Length, "s.Length + 1 == Label.Length");
+                Debug.Assert(thisLabel.EndsWith(suffixLabel), "Label.EndsWith(s)");
                 Debug.Assert(value != this, "value != this");
 #endif
                 _suffixLink = value;

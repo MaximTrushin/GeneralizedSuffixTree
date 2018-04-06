@@ -170,7 +170,7 @@ namespace SuffixTree
 
                 while (position <= sourceEnd && edgePosition <= edgeEnd && _source[position] == label[edgePosition])
                 {
-                    if (position > _lastPositionStored && position < sourceEnd) {
+                    if (position < sourceEnd) {
                         _nodes[position] = null; 
                         _lastPositionStored = position;
                     }
