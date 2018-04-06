@@ -47,6 +47,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestCaseGeneration\NonsenseGeneration.cs" />
     <Compile Include="TreeHelper.cs" />
+    <Compile Include="Ukkonen\CharDictionary.cs" />
+    <Compile Include="Ukkonen\Edge.cs" />
+    <Compile Include="Ukkonen\Node.cs" />
+    <Compile Include="Ukkonen\UTreeHelper.cs" />
+    <Compile Include="Ukkonen\UkkonenTrie.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NUnit">
