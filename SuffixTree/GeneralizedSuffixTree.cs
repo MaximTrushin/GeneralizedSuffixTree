@@ -74,7 +74,7 @@ namespace SuffixTree
         {
             if (_nodes[leafEnd] != null && _nodes[leafEnd] != node)
             {
-                Debug.Assert(_nodes[leafEnd].SuffixLink != node);
+                //Debug.Assert(_nodes[leafEnd].SuffixLink != node, "_nodes[leafEnd].SuffixLink != node");
                 _nodes[leafEnd].SuffixLink = node;
             }
             
@@ -92,8 +92,9 @@ namespace SuffixTree
         {
             if (_nodes[edgeEnd] != null && _nodes[edgeEnd] != node)
             {
+                //Debug.Assert(_nodes[edgeEnd].SuffixLink != node, "_nodes[edgeEnd].SuffixLink = node");
                 _nodes[edgeEnd].SuffixLink = node;
-                //Debug.Assert(_nodes[position].SuffixLink != node);
+                
             }
             _nodes[edgeEnd] = node;
             Debug.Assert(node.Label.EndsWith(_source[edgeEnd].ToString()));
@@ -137,10 +138,8 @@ namespace SuffixTree
                     _lastSuffix.AddData(_value, _wordNumber);
                     _lastSuffix = _lastSuffix.SuffixLink;
                 }
-
                 return;
             }
-
 
             var sourceEnd = _source.Length - 1;
             if (position <= sourceEnd)
@@ -151,13 +150,16 @@ namespace SuffixTree
                 {
                     edge = NewNode(_source.Substring(position, sourceEnd - position + 1));
                     edge.AddData(_value, _wordNumber); //leaf
-                    SaveLeaf(edge, position, sourceEnd);
                     _activeNode.AddEdge(_source[position], edge);
+                    SaveLeaf(edge, position, sourceEnd);
                     _activeNode = _root;
+                    _lastSuffix = null;
+                    _lastSuffixPosition = -1;
                     return;
                 }
-                _lastSuffix = null;
             }
+            _lastSuffix = null;
+            _lastSuffixPosition = -1;
             var activeNode = _activeNode;
             while (position <= sourceEnd){
                 var edgePosition = 0;
@@ -193,8 +195,8 @@ namespace SuffixTree
                         nextEdge = NewNode(_source.Substring(position, _source.Length - position));
                         nextEdge.AddData(_value, _wordNumber);
                         _activeNode = _lastSuffix ?? _root;
-                        SaveLeaf(nextEdge, position, sourceEnd);//leaf
                         edge.AddEdge(_source[position], nextEdge); //Adding leaf
+                        SaveLeaf(nextEdge, position, sourceEnd);//leaf
                         return;
                     }
                     activeNode = edge;
@@ -208,6 +210,7 @@ namespace SuffixTree
                 {
                     if (_nodes[sourceEnd] != null && _nodes[sourceEnd] != leaf)
                     {
+                        //Debug.Assert(_nodes[sourceEnd].SuffixLink != leaf, "_nodes[sourceEnd].SuffixLink == leaf");
                         _nodes[sourceEnd].SuffixLink = leaf;
                         //Debug.Assert(_nodes[sourceEnd].SuffixLink != leaf);
                     }

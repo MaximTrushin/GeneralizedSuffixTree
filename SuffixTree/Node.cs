@@ -2,12 +2,46 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text;
 
 namespace SuffixTree
 {
     public class Node<T>
     {
-        public Node<T> SuffixLink;
+        public Node<T> SuffixLink
+        {
+            get => _suffixLink;
+            set
+            {
+#if DEBUG
+                string s = "";
+                var sl = value;
+
+                do
+                {
+                    s = sl.Label + s;
+                    sl = sl.Parent;
+                } while (sl != null);
+
+                string s1 = "";
+                sl = this;
+
+                do
+                {
+                    s1 = sl.Label + s1;
+                    sl = sl.Parent;
+                } while (sl != null);
+
+
+
+                Debug.Assert(s.Length + 1 == s1.Length, "s.Length + 1 == Label.Length");
+                Debug.Assert(s1.EndsWith(s), "Label.EndsWith(s)");
+                Debug.Assert(value != this, "value != this");
+#endif
+                _suffixLink = value;
+            }
+        }
+
         private Dictionary<char, Node<T>> _edges;
         public Dictionary<char, Node<T>> Edges => _edges ?? (_edges = new Dictionary<char, Node<T>>());
         private HashSet<T> _data;
@@ -33,6 +67,8 @@ namespace SuffixTree
         public Node<T> Parent { get; set; }
 
         private int _prevWordNumber = -1;
+        private Node<T> _suffixLink;
+
         public void AddData(T value, int wordNumber)
         {
             if (_prevWordNumber == wordNumber)
