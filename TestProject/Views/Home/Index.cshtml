@@ -64,7 +64,7 @@
                 var t = data;
                 var searchMask = viewModel.substring();
                 var regEx = new RegExp(searchMask, "ig");
-                var replaceMask = "<span class='highlight'>" + viewModel.substring() + "</span>";
+                var replaceMask = "<span class='highlight'>" + $('<div/>').text(viewModel.substring()).html() + "</span>";
                 $("#textFragment").html(t.replace(regEx, replaceMask));
             });
     }
@@ -73,6 +73,7 @@
     function GetLocations(data) {
         $("#textFragment").html("");
         viewModel.currentBook(data);
+        viewModel.bookLocations(null);
         if (getLocationsRequest) getLocationsRequest.abort();
 
         getLocationsRequest = $.ajax(
