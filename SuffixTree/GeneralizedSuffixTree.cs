@@ -233,20 +233,17 @@ namespace SuffixTree
         /// <returns></returns>
         public static Node<T> SearchNode(string word, Node<T> root)
         {
-              //Verifies if exists a path from the root to a NodeA<T> such that the concatenation
-              //of all the labels on the path is a superstring of the given word.
-              //If such a path is found, the last NodeA<T> on it is returned.
-             
+            
             var currentEdge = root;
 
             for (var i = 0; i < word.Length; ++i)
             {
                 var ch = word[i];
-                // follow the EdgeA<T> corresponding to this char
+                // follow the edge corresponding to this char
                 currentEdge.Edges.TryGetValue(ch, out currentEdge);
                 if (null == currentEdge)
                 {
-                    // there is no EdgeA<T> starting with this char
+                    // there is no edge starting with this char
                     return null;
                 }
                 var label = currentEdge.Label;
@@ -254,7 +251,7 @@ namespace SuffixTree
 
                 if (!RegionMatches(word, i, label, 0, lenToMatch))
                 {
-                    // the label on the EdgeA<T> does not correspond to the one in the string to search
+                    // the label on the edge does not correspond to the one in the string to search
                     return null;
                 }
 
